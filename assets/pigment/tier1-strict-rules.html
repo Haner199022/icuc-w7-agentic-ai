@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>第 1 档｜照我的规矩办事：严格对齐零出错，但毫无惊喜</title>
+<style>
+  * { box-sizing: border-box; user-select: none; }
+  html, body {
+    margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
+    background: #f5f5f7; color: #1d1d1f;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "PingFang SC", "Helvetica Neue", Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .shell {
+    width: 100%; height: 100%;
+    display: grid; grid-template-rows: 54px 1fr 54px;
+    align-items: center; justify-items: center; padding: 0 20px;
+  }
+  body.embed-mode .shell {
+    grid-template-rows: 1fr 42px; padding: 6px 8px 4px; gap: 4px;
+  }
+  .top-bar {
+    width: 100%; max-width: 1060px;
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  }
+  .brand-txt { font-size: 15px; font-weight: 700; white-space: nowrap; }
+  
+  .tier-nav-bar {
+    display: inline-flex; align-items: center; gap: 4px; padding: 3px;
+    border-radius: 999px; background: rgba(29, 28, 25, 0.08); flex-shrink: 0;
+  }
+  .tier-nav-pill {
+    text-decoration: none; font-size: 11.5px; font-weight: 600;
+    padding: 5px 11px; border-radius: 999px; color: #515154; white-space: nowrap;
+    transition: background-color 150ms ease, color 150ms ease;
+  }
+  .tier-nav-pill:hover { color: #1d1d1f; background: rgba(255,255,255,0.75); }
+  .tier-nav-pill.current { background: #1d1d1f; color: #ffffff; }
+  body.embed-mode .top-bar, body.embed-mode .engine-tag, body.embed-mode .hint-overlay { display: none !important; }
+
+  .stage-wrap {
+    width: 100%; height: 100%; min-height: 0;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .frame {
+    position: relative; aspect-ratio: 3 / 4;
+    height: min(calc(100vh - 130px), 740px);
+    max-width: calc(100vw - 24px);
+    border-radius: 6px; overflow: hidden;
+    background: #ffffff; box-shadow: 0 12px 32px rgba(0,0,0,0.08);
+    cursor: pointer; touch-action: none;
+  }
+  body.embed-mode .frame {
+    height: calc(100vh - 54px); max-width: calc(100vw - 16px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.07);
+  }
+  .frame canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  .bottom-bar {
+    width: 100%; max-width: 1060px;
+    display: flex; align-items: center; justify-content: center; gap: 6px; flex-wrap: nowrap;
+  }
+  .pill-btn {
+    appearance: none; border: none; border-radius: 999px;
+    background: rgba(29,29,31,0.08); color: #1d1d1f;
+    font-family: inherit; font-size: 12px; font-weight: 600;
+    padding: 6px 12px; cursor: pointer; white-space: nowrap;
+    transition: background-color 140ms ease, color 140ms ease;
+  }
+  body.embed-mode .pill-btn { font-size: 11px; padding: 5px 9px; }
+  .pill-btn:hover { background: rgba(29,29,31,0.16); }
+  .pill-btn.active { background: #15803d; color: #ffffff; }
+</style>
+</head>
+<body>
+<div class="shell">
+  <header class="top-bar">
+    <div class="brand-txt">第 1 档｜照规矩填空：100% 像素对齐极稳，但毫无水彩创意</div>
+    <nav class="tier-nav-bar" aria-label="P07 放权三档切换"><a class="tier-nav-pill current" href="tier1-strict-rules.html">第 1 档 · 照规矩办</a><a class="tier-nav-pill" href="tier2-guided-polish.html">第 2 档 · 挑刺微调</a><a class="tier-nav-pill" href="tier3-full-autonomy.html">第 3 档 · 全撒手放飞</a></nav>
+  </header>
+  <main class="stage-wrap">
+    <div class="frame" id="frame">
+      <canvas id="cv" width="600" height="800"></canvas>
+    </div>
+  </main>
+  <footer class="bottom-bar">
+    <button class="pill-btn active" id="rulerBtn">像素对齐标尺：开</button>
+    <button class="pill-btn" id="launchBtn">发球测试 (Space)</button>
+    <button class="pill-btn" id="resetBtn">重置</button>
+  </footer>
+</div>
+<script>
+(() => {
+  'use strict';
+  if (new URLSearchParams(location.search).get('embed') === '1') document.body.classList.add('embed-mode');
+  const cv = document.getElementById('cv');
+  const ctx = cv.getContext('2d');
+  const frame = document.getElementById('frame');
+
+  const W = 600, H = 800, R = 11.2;
+  const WALL_L = 48, WALL_R = 552, WALL_T = 64, WALL_B = 768;
+  let showRuler = true, leftDown = false, rightDown = false, score = 0;
+  let lAng = 0.44, rAng = Math.PI - 0.44;
+  let ball = { x: 300, y: 560, vx: 110, vy: -640 };
+  let bricks = [];
+
+  const slopes = [
+    { ax: WALL_L, ay: 616, bx: 188, by: 704 },
+    { ax: WALL_R, ay: 616, bx: 412, by: 704 }
+  ];
+  const bumpers = [
+    { x: 210, y: 316, r: 26 },
+    { x: 390, y: 316, r: 26 },
+    { x: 300, y: 448, r: 24 }
+  ];
+
+  function reset() {
+    score = 0;
+    ball = { x: 300, y: 560, vx: (Math.random() > 0.5 ? 1 : -1) * 125, vy: -690 };
+    bricks = [];
+    // Strictly aligned: 6 bricks * 74px + 5 * 8px = 484px centered in 504px playfield
+    for (let i = 0; i < 6; i++) {
+      bricks.push({ x: 58 + i * 82, y: 92, w: 74, h: 24, alive: true });
+    }
+  }
+
+  function colSeg(ax, ay, bx, by, rest, angVel = 0, px = 0, py = 0, rad = 0) {
+    const abx = bx - ax, aby = by - ay, lenSq = abx * abx + aby * aby;
+    if (lenSq < 1e-6) return;
+    const t = Math.max(0, Math.min(1, ((ball.x - ax) * abx + (ball.y - ay) * aby) / lenSq));
+    const cx = ax + abx * t, cy = ay + aby * t;
+    const dx = ball.x - cx, dy = ball.y - cy, d = Math.hypot(dx, dy);
+    if (d >= R + rad || d < 1e-5) return;
+    const nx = dx / d, ny = dy / d;
+    ball.x = cx + nx * (R + rad); ball.y = cy + ny * (R + rad);
+    const svx = -angVel * (cy - py), svy = angVel * (cx - px);
+    const rvn = (ball.vx - svx) * nx + (ball.vy - svy) * ny;
+    if (rvn < 0) {
+      ball.vx -= (1 + rest) * rvn * nx;
+      ball.vy -= (1 + rest) * rvn * ny;
+      if (Math.abs(angVel) > 4) ball.vy = Math.min(ball.vy - 180, -650);
+    }
+  }
+
+  function step(dt) {
+    const sub = 6, sdt = dt / sub;
+    for (let s = 0; s < sub; s++) {
+      const lp = lAng, rp = rAng;
+      const lt = leftDown ? -0.45 : 0.44, rt = rightDown ? Math.PI + 0.45 : Math.PI - 0.44;
+      lAng += Math.sign(lt - lAng) * Math.min(Math.abs(lt - lAng), 20 * sdt);
+      rAng += Math.sign(rt - rAng) * Math.min(Math.abs(rt - rAng), 20 * sdt);
+      const lv = (lAng - lp) / sdt, rv = (rAng - rp) / sdt;
+
+      ball.vy += 840 * sdt;
+      ball.x += ball.vx * sdt;
+      ball.y += ball.vy * sdt;
+
+      if (ball.x < WALL_L + R) { ball.x = WALL_L + R; ball.vx = Math.abs(ball.vx) * 0.88; }
+      if (ball.x > WALL_R - R) { ball.x = WALL_R - R; ball.vx = -Math.abs(ball.vx) * 0.88; }
+      if (ball.y < WALL_T + R) { ball.y = WALL_T + R; ball.vy = Math.abs(ball.vy) * 0.88; }
+      for (const sl of slopes) colSeg(sl.ax, sl.ay, sl.bx, sl.by, 0.78);
+      colSeg(190, 706, 190 + Math.cos(lAng) * 86, 706 + Math.sin(lAng) * 86, 0.84, lv, 190, 706, 7);
+      colSeg(410, 706, 410 + Math.cos(rAng) * 86, 706 + Math.sin(rAng) * 86, 0.84, rv, 410, 706, 7);
+      for (const bp of bumpers) {
+        const dx = ball.x - bp.x, dy = ball.y - bp.y, d = Math.hypot(dx, dy);
+        if (d < bp.r + R && d > 1e-4) {
+          const nx = dx / d, ny = dy / d;
+          ball.x = bp.x + nx * (bp.r + R); ball.y = bp.y + ny * (bp.r + R);
+          ball.vx = nx * 520; ball.vy = ny * 520;
+        }
+      }
+      for (const br of bricks) {
+        if (!br.alive) continue;
+        const nx = Math.max(br.x, Math.min(ball.x, br.x + br.w));
+        const ny = Math.max(br.y, Math.min(ball.y, br.y + br.h));
+        const dx = ball.x - nx, dy = ball.y - ny;
+        if (dx * dx + dy * dy < R * R) {
+          br.alive = false; score += 10;
+          if (Math.abs(dx) > Math.abs(dy)) ball.vx = -ball.vx; else ball.vy = -ball.vy;
+        }
+      }
+      if (ball.y > H + 20) {
+        ball = { x: 300, y: 560, vx: (Math.random() > 0.5 ? 1 : -1) * 120, vy: -680 };
+      }
+    }
+  }
+
+  function render() {
+    ctx.fillStyle = '#f5f5f7'; ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = '#ffffff'; ctx.fillRect(WALL_L, WALL_T, WALL_R - WALL_L, WALL_B - WALL_T);
+    ctx.strokeStyle = '#1d1d1f'; ctx.lineWidth = 2; ctx.strokeRect(WALL_L, WALL_T, WALL_R - WALL_L, WALL_B - WALL_T);
+
+    // Subtle strict engineering grid
+    if (showRuler) {
+      ctx.strokeStyle = 'rgba(21, 128, 61, 0.09)'; ctx.lineWidth = 1;
+      for (let x = WALL_L + 24; x < WALL_R; x += 24) { ctx.beginPath(); ctx.moveTo(x, WALL_T); ctx.lineTo(x, WALL_B); ctx.stroke(); }
+      for (let y = WALL_T + 24; y < WALL_B; y += 24) { ctx.beginPath(); ctx.moveTo(WALL_L, y); ctx.lineTo(WALL_R, y); ctx.stroke(); }
+    }
+
+    // Clean top label
+    ctx.fillStyle = '#15803d'; ctx.font = '700 14px -apple-system, "PingFang SC", sans-serif';
+    ctx.textAlign = 'left';
+    ctx.fillText(`第 1 档产物 · 严格对齐 74×24px / 间距 8px · 得分: ${score}`, 50, 42);
+
+    // Strictly uniform monochrome bricks (zero creative color/watercolor)
+    for (const br of bricks) {
+      if (!br.alive) continue;
+      ctx.fillStyle = '#e5e5ea'; ctx.fillRect(br.x, br.y, br.w, br.h);
+      ctx.strokeStyle = '#1d1d1f'; ctx.lineWidth = 1.5; ctx.strokeRect(br.x, br.y, br.w, br.h);
+    }
+    if (showRuler) {
+      ctx.fillStyle = '#15803d'; ctx.font = '600 12px monospace'; ctx.textAlign = 'center';
+      ctx.fillText('← 74px →  8px  ← 74px →  （100% 严格按指令对齐 · 0 创意发挥）', 300, 142);
+    }
+
+    for (const bp of bumpers) {
+      ctx.fillStyle = '#f5f5f7'; ctx.beginPath(); ctx.arc(bp.x, bp.y, bp.r, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = '#1d1d1f'; ctx.lineWidth = 2; ctx.stroke();
+    }
+    ctx.strokeStyle = '#515154'; ctx.lineWidth = 4;
+    ctx.beginPath(); slopes.forEach(s => { ctx.moveTo(s.ax, s.ay); ctx.lineTo(s.bx, s.by); }); ctx.stroke();
+    ctx.strokeStyle = '#1d1d1f'; ctx.lineWidth = 12; ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(190, 706); ctx.lineTo(190 + Math.cos(lAng) * 86, 706 + Math.sin(lAng) * 86);
+    ctx.moveTo(410, 706); ctx.lineTo(410 + Math.cos(rAng) * 86, 706 + Math.sin(rAng) * 86);
+    ctx.stroke();
+
+    ctx.fillStyle = '#1d1d1f'; ctx.beginPath(); ctx.arc(ball.x, ball.y, R, 0, Math.PI * 2); ctx.fill();
+
+    // Calm stamp cleanly above the bumpers (zero overlap with flippers)
+    ctx.fillStyle = '#15803d'; ctx.font = '600 13.5px -apple-system, "PingFang SC", sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('稳如泰山、绝不白屏——但也没帮你加一点水彩美感', 300, 174);
+  }
+
+  window.addEventListener('keydown', (e) => {
+    const k = e.key.toLowerCase();
+    if (k === 'a' || k === 'arrowleft') leftDown = true;
+    if (k === 'd' || k === 'arrowright') rightDown = true;
+    if (e.code === 'Space') { e.preventDefault(); ball.vy = -720; }
+  });
+  window.addEventListener('keyup', (e) => {
+    const k = e.key.toLowerCase();
+    if (k === 'a' || k === 'arrowleft') leftDown = false;
+    if (k === 'd' || k === 'arrowright') rightDown = false;
+  });
+  frame.addEventListener('pointerdown', (e) => {
+    const r = frame.getBoundingClientRect();
+    if ((e.clientX - r.left) < r.width * 0.5) leftDown = true; else rightDown = true;
+  });
+  window.addEventListener('pointerup', () => { leftDown = false; rightDown = false; });
+
+  document.getElementById('rulerBtn').addEventListener('click', (e) => {
+    showRuler = !showRuler;
+    e.currentTarget.classList.toggle('active', showRuler);
+    e.currentTarget.textContent = showRuler ? '像素对齐标尺：开' : '像素对齐标尺：关';
+  });
+  document.getElementById('launchBtn').addEventListener('click', () => { ball.vy = -740; ball.vx = (Math.random() - 0.5) * 260; });
+  document.getElementById('resetBtn').addEventListener('click', reset);
+
+  reset();
+  let last = null;
+  function loop(ts) {
+    if (last === null) last = ts;
+    const dt = Math.max(0, Math.min(0.033, (ts - last) / 1000));
+    last = ts;
+    step(dt);
+    render();
+    requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>

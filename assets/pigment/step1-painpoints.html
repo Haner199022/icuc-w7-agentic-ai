@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>第 1 步｜定痛点：把“太丑了”翻译成 3 处具体病灶</title>
+<style>
+  * { box-sizing: border-box; user-select: none; }
+  html, body {
+    margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
+    background: #f5f5f7; color: #1d1d1f;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "PingFang SC", "Helvetica Neue", Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .shell {
+    width: 100%; height: 100%;
+    display: grid; grid-template-rows: 54px 1fr 54px;
+    align-items: center; justify-items: center; padding: 0 20px;
+  }
+  body.embed-mode .shell {
+    grid-template-rows: 1fr 42px; padding: 6px 8px 4px; gap: 4px;
+  }
+  .top-bar {
+    width: 100%; max-width: 1060px;
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  }
+  .brand-txt { font-size: 15px; font-weight: 700; white-space: nowrap; }
+  
+  .step-nav-bar {
+    display: inline-flex; align-items: center; gap: 4px; padding: 3px;
+    border-radius: 999px; background: rgba(29, 28, 25, 0.08); flex-shrink: 0;
+  }
+  .step-nav-pill {
+    text-decoration: none; font-size: 11.5px; font-weight: 600;
+    padding: 5px 11px; border-radius: 999px; color: #515154; white-space: nowrap;
+    transition: background-color 150ms ease, color 150ms ease;
+  }
+  .step-nav-pill:hover { color: #1d1d1f; background: rgba(255,255,255,0.75); }
+  .step-nav-pill.current { background: #1d1d1f; color: #ffffff; }
+  body.embed-mode .top-bar, body.embed-mode .engine-tag, body.embed-mode .hint-overlay { display: none !important; }
+
+  .stage-wrap {
+    width: 100%; height: 100%; min-height: 0;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .frame {
+    position: relative; aspect-ratio: 3 / 4;
+    height: min(calc(100vh - 130px), 740px);
+    max-width: calc(100vw - 24px);
+    border-radius: 6px; overflow: hidden;
+    background: #d4d4d8; box-shadow: 0 14px 36px rgba(0,0,0,0.12);
+    cursor: pointer;
+  }
+  body.embed-mode .frame {
+    height: calc(100vh - 54px); max-width: calc(100vw - 16px);
+    box-shadow: 0 8px 22px rgba(0,0,0,0.10);
+  }
+  .frame canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  .bottom-bar {
+    width: 100%; max-width: 1060px;
+    display: flex; align-items: center; justify-content: center; gap: 6px; flex-wrap: nowrap;
+  }
+  .pill-btn {
+    appearance: none; border: none; border-radius: 999px;
+    background: rgba(29,29,31,0.08); color: #1d1d1f;
+    font-family: inherit; font-size: 12px; font-weight: 600;
+    padding: 6px 12px; cursor: pointer; white-space: nowrap;
+    transition: background-color 140ms ease, color 140ms ease;
+  }
+  body.embed-mode .pill-btn { font-size: 11px; padding: 5px 9px; }
+  .pill-btn:hover { background: rgba(29,29,31,0.16); }
+  .pill-btn.active { background: #e11d48; color: #ffffff; }
+</style>
+</head>
+<body>
+<div class="shell">
+  <header class="top-bar">
+    <div class="brand-txt">第 1 步｜定痛点：在灰框初版上精准圈出 3 处病灶</div>
+    <nav class="step-nav-bar" aria-label="P06 四步拆解切换"><a class="step-nav-pill current" href="step1-painpoints.html">第 1 步 · 定痛点</a><a class="step-nav-pill" href="step2-gameplay-feel.html">第 2 步 · 调手感</a><a class="step-nav-pill" href="step3-visual-material.html">第 3 步 · 调画面</a><a class="step-nav-pill" href="step4-hands-on-verify.html">第 4 步 · 亲手试</a></nav>
+  </header>
+  <main class="stage-wrap">
+    <div class="frame" id="frame">
+      <canvas id="cv" width="600" height="800"></canvas>
+    </div>
+  </main>
+  <footer class="bottom-bar">
+    <button class="pill-btn active" data-p="0">全部 3 处病灶</button>
+    <button class="pill-btn" data-p="1">① 死灰框无纸感</button>
+    <button class="pill-btn" data-p="2">② 撞碎无水彩</button>
+    <button class="pill-btn" data-p="3">③ 漏球弹窗挫败</button>
+  </footer>
+</div>
+<script>
+(() => {
+  'use strict';
+  if (new URLSearchParams(location.search).get('embed') === '1') document.body.classList.add('embed-mode');
+  const cv = document.getElementById('cv');
+  const ctx = cv.getContext('2d');
+  const W = 600, H = 800;
+  let focus = 0; // 0: all, 1: frame, 2: bricks, 3: fail modal
+  let t = 0;
+  let brickFlash = 0;
+
+  const btns = document.querySelectorAll('.pill-btn');
+  function setFocus(k) {
+    focus = k;
+    btns.forEach(b => b.classList.toggle('active', Number(b.dataset.p) === k));
+    if (k === 2) brickFlash = 1.0;
+  }
+  btns.forEach(b => b.addEventListener('click', () => setFocus(Number(b.dataset.p))));
+  document.getElementById('frame').addEventListener('click', () => setFocus((focus + 1) % 4));
+
+  function drawCallout(x, y, w, h, label, pulse, alignBottom = true) {
+    ctx.save();
+    ctx.fillStyle = `rgba(225, 29, 72, ${0.11 + pulse * 0.08})`;
+    ctx.strokeStyle = '#e11d48';
+    ctx.lineWidth = 3;
+    ctx.setLineDash([10, 6]);
+    ctx.fillRect(x, y, w, h);
+    ctx.strokeRect(x, y, w, h);
+    ctx.setLineDash([]);
+    const ty = alignBottom ? y + h + 26 : y - 12;
+    ctx.font = '700 17px -apple-system, "PingFang SC", sans-serif';
+    const tw = ctx.measureText(label).width + 22;
+    const tx = Math.max(14, Math.min(W - tw - 14, x + (w - tw) * 0.5));
+    ctx.fillStyle = '#be123c';
+    ctx.fillRect(tx, ty - 20, tw, 28);
+    ctx.fillStyle = '#ffffff';
+    ctx.textAlign = 'left';
+    ctx.fillText(label, tx + 11, ty);
+    ctx.restore();
+  }
+
+  function render() {
+    t += 0.03;
+    const pulse = 0.5 + 0.5 * Math.sin(t * 2.2);
+    if (brickFlash > 0) brickFlash = Math.max(0, brickFlash - 0.015);
+
+    // Base graybox pinball
+    ctx.fillStyle = '#d4d4d8'; ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = '#f4f4f5'; ctx.fillRect(46, 56, 508, 716);
+    ctx.strokeStyle = '#3f3f46'; ctx.lineWidth = 4; ctx.strokeRect(46, 56, 508, 716);
+
+    ctx.fillStyle = '#52525b';
+    ctx.font = 'bold 16px sans-serif';
+    ctx.textAlign = 'left';
+    ctx.fillText('第 1 版灰框初稿 · 痛点解剖扫描', 54, 38);
+
+    // Bricks (index 2 missing when demonstrating dry vanish)
+    const cols = ['#dc2626', '#2563eb', '#eab308', '#16a34a', '#9333ea', '#ea580c'];
+    for (let i = 0; i < 6; i++) {
+      if (focus === 2 && i === 2 && Math.sin(t * 2.5) > 0) {
+        ctx.strokeStyle = '#a1a1aa'; ctx.setLineDash([4, 4]); ctx.lineWidth = 2;
+        ctx.strokeRect(64 + i * 79, 82, 72, 28);
+        ctx.setLineDash([]);
+        continue;
+      }
+      ctx.fillStyle = cols[i];
+      ctx.fillRect(64 + i * 79, 82, 72, 28);
+      ctx.strokeStyle = '#18181b'; ctx.lineWidth = 2;
+      ctx.strokeRect(64 + i * 79, 82, 72, 28);
+    }
+    [[56,220,'#2563eb'],[56,316,'#16a34a'],[518,220,'#dc2626'],[518,316,'#ea580c']].forEach(([x,y,c]) => {
+      ctx.fillStyle = c; ctx.fillRect(x, y, 26, 78);
+      ctx.strokeStyle = '#18181b'; ctx.lineWidth = 2; ctx.strokeRect(x, y, 26, 78);
+    });
+
+    // Bumpers
+    [[205,315,28],[395,315,28],[300,445,24]].forEach(([x,y,r]) => {
+      ctx.fillStyle = '#a1a1aa'; ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fill();
+      ctx.strokeStyle = '#27272a'; ctx.lineWidth = 3; ctx.stroke();
+    });
+
+    // Slopes & Flippers
+    ctx.strokeStyle = '#3f3f46'; ctx.lineWidth = 6;
+    ctx.beginPath(); ctx.moveTo(46,610); ctx.lineTo(186,702); ctx.moveTo(554,610); ctx.lineTo(414,702); ctx.stroke();
+    ctx.strokeStyle = '#18181b'; ctx.lineWidth = 14;
+    ctx.beginPath(); ctx.moveTo(190,706); ctx.lineTo(268,742); ctx.moveTo(410,706); ctx.lineTo(332,742); ctx.stroke();
+
+    // Ball
+    const bx = focus === 2 ? 258 : 300;
+    const by = focus === 2 ? 128 + Math.abs(Math.sin(t * 2.5)) * 45 : (focus === 3 ? 758 : 560);
+    ctx.fillStyle = '#09090b'; ctx.beginPath(); ctx.arc(bx, by, 11.2, 0, Math.PI*2); ctx.fill();
+
+    // Focus 3 shows harsh GAME OVER popup preview
+    if (focus === 3) {
+      ctx.fillStyle = 'rgba(24,24,27,0.48)'; ctx.fillRect(46, 56, 508, 716);
+      ctx.fillStyle = '#fef2f2'; ctx.fillRect(116, 300, 368, 152);
+      ctx.strokeStyle = '#dc2626'; ctx.lineWidth = 4; ctx.strokeRect(116, 300, 368, 152);
+      ctx.fillStyle = '#b91c1c'; ctx.font = '800 28px sans-serif'; ctx.textAlign = 'center';
+      ctx.fillText('GAME OVER 失败了！', W/2, 362);
+      ctx.fillStyle = '#52525b'; ctx.font = '600 15px sans-serif';
+      ctx.fillText('一漏球就弹窗打断，毫无艺术松弛感', W/2, 404);
+    }
+
+    // Pain point callouts
+    if (focus === 0 || focus === 1) {
+      drawCallout(34, 48, 532, 732, '痛点 ①：死灰直角方框，毫无棉纸与剪纸凹槽感', pulse, false);
+    }
+    if (focus === 0 || focus === 2) {
+      drawCallout(54, 72, 492, 136, '痛点 ②：撞碎方砖干巴巴消失，零水彩晕染与轨迹', pulse, true);
+    }
+    if (focus === 0 || focus === 3) {
+      drawCallout(126, 650, 348, 118, '痛点 ③：漏球即弹窗判负，缺少金/银/铜球零挫败体验', pulse, false);
+    }
+
+    requestAnimationFrame(render);
+  }
+  requestAnimationFrame(render);
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,318 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>第 7 周任务单｜拆步骤与两轮看图挑毛病</title>
+  <style>
+    :root {
+      --color-ground: #F5F5F7; --color-surface: #FFFFFF; --color-surface-tint: #EFEFF2; --color-surface-dark: #0A0A0C;
+      --color-ink: #1D1D1F; --color-ink-secondary: #515154; --color-ink-muted: #86868B; --color-hairline: rgba(0,0,0,0.08);
+      --color-rule-strong: #1D1D1F; --color-accent: #0071E3; --color-accent-hover: #0077ED; --color-accent-soft: #EFF6FF;
+      --color-accent-blue: #0071E3; --color-accent-blue-soft: #EFF6FF;
+      --color-danger: #E11D48; --color-danger-soft: #FFF1F2;
+      --color-accent-amber: #B45309; --color-accent-amber-line: #F59E0B;
+      --color-status-ok: #15803D; --color-status-ok-soft: #F0FDF4; --color-volt: #19FF00;
+      --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "PingFang SC", "Hiragino Sans GB", "Helvetica Neue", Arial, sans-serif;
+      --font-mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    ::selection { background: var(--color-accent); color: #FFFFFF; }
+    table, .tabular { font-variant-numeric: tabular-nums; }
+    body {
+      margin: 0; background: var(--color-ground); color: var(--color-ink);
+      font-family: var(--font-sans); font-size: 15px; line-height: 1.65;
+      -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
+    }
+    .sticky-bar {
+      position: sticky; top: 0; z-index: 40;
+      background: rgba(14, 14, 17, 0.84);
+      -webkit-backdrop-filter: saturate(180%) blur(20px); backdrop-filter: saturate(180%) blur(20px);
+      color: #F5F5F7; border-bottom: 1px solid rgba(255,255,255,0.08);
+      padding: 12px 28px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px;
+    }
+    .sb-left { display: flex; align-items: center; gap: 12px; }
+    .sb-badge {
+      display: inline-flex; align-items: center; gap: 7px;
+      background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.14);
+      color: #FFFFFF; font-size: 12px; font-weight: 600; padding: 5px 12px; border-radius: 999px;
+    }
+    .sb-badge::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--color-volt); display: inline-block; }
+    .sb-status { font-size: 12.5px; color: #A1A1AA; }
+    .sb-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+    .btn {
+      appearance: none; border: 1px solid rgba(0,0,0,0.12); background: var(--color-surface); color: var(--color-ink);
+      font-family: var(--font-sans); font-size: 13px; font-weight: 600; padding: 8px 16px; border-radius: 999px;
+      cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; justify-content: center;
+      transition: background-color 160ms ease, color 160ms ease, border-color 160ms ease, transform 140ms ease;
+    }
+    .btn:hover { background: var(--color-surface-tint); border-color: rgba(0,0,0,0.2); }
+    .btn.dark { background: rgba(255,255,255,0.12); border-color: rgba(255,255,255,0.18); color: #F5F5F7; }
+    .btn.dark:hover { background: rgba(255,255,255,0.2); }
+    .btn.primary { background: #1D1D1F; border-color: #1D1D1F; color: #FFFFFF; }
+    .btn.primary:hover { background: #333336; border-color: #333336; }
+    .sticky-bar .btn.primary { background: #FFFFFF; border-color: #FFFFFF; color: #0A0A0C; }
+    .sticky-bar .btn.primary:hover { background: #E8E8ED; }
+    .btn.blue { background: var(--color-accent); border-color: var(--color-accent); color: #FFFFFF; }
+    .btn.blue:hover { background: var(--color-accent-hover); border-color: var(--color-accent-hover); }
+    .btn.ghost-danger { background: transparent; border-color: rgba(225,29,72,0.28); color: #BE123C; }
+    .btn.ghost-danger:hover { background: #FFF1F2; border-color: #E11D48; }
+    .demo-banner {
+      display: none; margin-bottom: 18px; padding: 13px 18px; border-radius: 16px;
+      background: #FFFBEB; border: 1px solid #F59E0B; color: #92400E;
+      font-size: 13.5px; font-weight: 600; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+    }
+    .demo-banner.show { display: flex; }
+    .demo-banner.err { background: #FFF1F2; border-color: #E11D48; color: #9F1239; }
+    .container { max-width: 1020px; margin: 0 auto; padding: 36px 24px 84px; }
+    .doc-header {
+      background: var(--color-surface); border-radius: 24px; padding: 32px 34px; margin-bottom: 20px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+    }
+    .doc-header h1 {
+      margin: 10px 0 10px; font-family: var(--font-sans); font-size: clamp(26px, 3vw, 34px);
+      font-weight: 700; line-height: 1.2; letter-spacing: -0.025em; color: var(--color-ink);
+    }
+    .doc-header p { margin: 0 0 18px; color: var(--color-ink-secondary); max-width: 68ch; font-size: 15.5px; }
+    .preset-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding-top: 18px; border-top: 1px solid var(--color-hairline); }
+    .prog-wrap {
+      display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 18px;
+      background: var(--color-surface); border-radius: 18px; padding: 16px 22px; margin-bottom: 22px;
+      box-shadow: 0 1px 6px rgba(0,0,0,0.025);
+    }
+    .prog-track { height: 7px; background: #E5E5EA; border-radius: 999px; width: 100%; overflow: hidden; }
+    .prog-fill { height: 100%; background: var(--color-accent); border-radius: 999px; width: 0%; transition: width 240ms cubic-bezier(.25,.1,.25,1); }
+    .prog-text { font-family: var(--font-mono); font-size: 12.5px; font-weight: 600; color: var(--color-ink-secondary); }
+    .mod-card {
+      background: var(--color-surface); border-radius: 24px; padding: 28px 32px; margin-bottom: 22px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+    }
+    .mod-head {
+      display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px;
+      border-bottom: 1px solid var(--color-hairline); padding-bottom: 14px; margin-bottom: 18px;
+    }
+    .mod-num {
+      display: inline-block; font-size: 12px; font-weight: 600; color: var(--color-accent);
+      background: var(--color-accent-soft); padding: 4px 11px; border-radius: 999px;
+    }
+    .mod-card.red .mod-num { color: var(--color-danger); background: var(--color-danger-soft); }
+    .mod-card.ok .mod-num { color: var(--color-status-ok); background: var(--color-status-ok-soft); }
+    .mod-card.amber .mod-num { color: var(--color-accent-amber); background: #FFFBEB; }
+    .mod-head h2 { margin: 8px 0 0; font-size: 21px; font-weight: 700; letter-spacing: -0.02em; }
+    .mod-desc { margin: 0 0 18px; font-size: 14.5px; color: var(--color-ink-secondary); max-width: 70ch; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+    .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+    .field { display: flex; flex-direction: column; gap: 7px; margin-bottom: 16px; }
+    .field label { font-size: 13.5px; font-weight: 600; color: var(--color-ink); }
+    input[type="text"], select, textarea {
+      width: 100%; border: 1px solid #D2D2D7; background: #FAFAFC; color: var(--color-ink);
+      font-family: var(--font-sans); font-size: 14px; line-height: 1.55; padding: 10px 13px; border-radius: 12px;
+      transition: border-color 150ms ease, box-shadow 150ms ease, background-color 150ms ease;
+    }
+    input[type="text"]:focus, select:focus, textarea:focus {
+      outline: none; border-color: var(--color-accent); background: #FFFFFF;
+      box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.16);
+    }
+    textarea { resize: vertical; min-height: 100px; }
+    table.work-table {
+      width: 100%; border-collapse: separate; border-spacing: 0; font-size: 13.5px; margin-bottom: 18px;
+      border: 1px solid #E5E5EA; border-radius: 16px; overflow: hidden; background: var(--color-surface);
+    }
+    table.work-table th {
+      text-align: left; padding: 11px 12px; background: #F5F5F7;
+      border-bottom: 1px solid #E5E5EA; font-weight: 600; color: var(--color-ink-secondary); font-size: 12.5px;
+    }
+    table.work-table td { padding: 8px 10px; border-bottom: 1px solid #EFEFF2; vertical-align: middle; }
+    table.work-table tbody tr:last-child td { border-bottom: none; }
+    table.work-table td input[type="text"], table.work-table td select {
+      border: 1px solid transparent; background: transparent; padding: 6px 8px; font-size: 13.5px; border-radius: 8px;
+    }
+    table.work-table td input[type="text"]:focus, table.work-table td select:focus {
+      border-color: var(--color-accent); background: #FFFFFF; box-shadow: 0 0 0 2px rgba(0,113,227,0.14);
+    }
+    .check-item {
+      display: flex; align-items: flex-start; gap: 10px; padding: 13px 16px;
+      background: var(--color-ground); border-radius: 14px; font-size: 13.5px; cursor: pointer; margin-bottom: 10px;
+    }
+    .check-item input { margin-top: 3px; accent-color: var(--color-accent); width: 16px; height: 16px; }
+    .ea-summary {
+      display: grid; grid-template-columns: 1fr 1.1fr; gap: 20px; background: #F5F5F7;
+      border-radius: 18px; padding: 20px 22px; margin-bottom: 18px;
+    }
+    .ea-bar-item { display: grid; grid-template-columns: 142px 1fr 52px; align-items: center; gap: 10px; font-size: 13px; margin-bottom: 8px; }
+    .ea-track { height: 10px; background: #E2E2E7; border-radius: 999px; overflow: hidden; }
+    .ea-fill { height: 100%; background: var(--color-accent); border-radius: 999px; transition: width 220ms ease; }
+    .ea-fill.top { background: var(--color-danger); }
+    .hop-btn {
+      width: 100%; padding: 7px 6px; border: none; border-radius: 10px;
+      background: #F2F2F5; color: var(--color-ink-muted); font-size: 12px; font-weight: 600; cursor: pointer;
+      transition: background-color 140ms ease, color 140ms ease;
+    }
+    .hop-btn:hover { background: #E5E5EA; color: var(--color-ink); }
+    .hop-btn.fail { background: var(--color-danger); color: #FFFFFF; }
+    .modal-bg {
+      position: fixed; inset: 0; background: rgba(10, 10, 12, 0.56);
+      -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
+      display: none; align-items: center; justify-content: center; z-index: 60; padding: 20px;
+    }
+    .modal-bg.open { display: flex; }
+    .modal-box {
+      width: min(780px, 95vw); max-height: 84vh; overflow-y: auto;
+      background: #FFFFFF; border-radius: 24px; padding: 26px 28px;
+      box-shadow: 0 24px 60px rgba(0,0,0,0.22);
+    }
+    .prompt-pre {
+      background: #0F0F12; color: #F5F5F7; font-family: var(--font-sans); font-size: 13.5px; line-height: 1.7;
+      padding: 18px 20px; white-space: pre-wrap; margin: 14px 0; border-radius: 16px; border: 1px solid rgba(255,255,255,0.08);
+    }
+    .toast {
+      position: fixed; right: 24px; bottom: 24px; background: rgba(29, 29, 31, 0.92);
+      -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
+      color: #FFFFFF; border-radius: 999px; padding: 10px 20px; font-size: 13px; font-weight: 600; display: none; z-index: 80;
+    }
+    @media (max-width: 820px) { .grid-2, .grid-4, .ea-summary { grid-template-columns: 1fr; } }
+    @media print { .sticky-bar, .preset-bar, .no-print { display: none !important; } body { background: #FFFFFF; } .doc-header, .mod-card { box-shadow: none; border: 1px solid #E5E5EA; } }
+</style>
+</head>
+<body>
+<header class="sticky-bar no-print">
+  <div class="sb-left"><span class="sb-badge">第 7 周作业台</span><span class="sb-status" id="saveStatus">已开启防丢失自动保存</span></div>
+  <div class="sb-actions">
+    <button class="btn dark" onclick="openModal('P1')">一键抄大白话话术</button>
+    <button class="btn primary" onclick="exportMd()">导出作业报告</button>
+    <button class="btn blue" onclick="window.print()">打印 / 存为 PDF</button>
+  </div>
+</header>
+<main class="container">
+  <section class="doc-header">
+    <div class="mod-num">第 7 周（第 1 次课）· 只填 2 个超轻量模块</div>
+    <h1>学会让 AI“按退格键”：拆 4 步 + 两轮看图挑毛病</h1>
+    <p>先点下方按钮看一眼《PIGMENT. 墨迹弹珠》的满分示范，再点「清空填我自己的作品」，跟着老师用 30 分钟紧凑双轮实操把你的任意作品稳稳改出肉眼变好的第 2 版。</p>
+    <div class="preset-bar no-print">
+      <button class="btn blue" onclick="loadEx('game')">看《PIGMENT.》满分示范</button>
+      <button class="btn ghost-danger" onclick="clearForm()">清空并开始填我自己的作品</button>
+    </div>
+  </section>
+  <div class="demo-banner no-print" id="demoBanner">
+    <span id="demoBannerTxt">当前为「老师示范浏览态」——看懂颗粒度后请点右侧清空并填写你自己的真实作品（示范态不可直接导出交卷）</span>
+    <button class="btn ghost-danger" style="padding:5px 12px;font-size:12px;" onclick="clearForm(true)">立刻清空填我的作品</button>
+  </div>
+  <div class="prog-wrap no-print">
+    <div><div style="font-size:12.5px;font-weight:700;margin-bottom:5px;">今天完成进度</div><div class="prog-track"><div class="prog-fill" id="progFill"></div></div></div>
+    <div class="prog-text tabular" id="progText">0% (0 / 5 项)</div>
+  </div>
+
+  <section class="mod-card">
+    <div class="mod-head"><div><div class="mod-num">基本信息</div><h2>你是谁、今天升级哪件作品？</h2></div></div>
+    <div class="grid-4">
+      <div class="field"><label>姓名</label><input type="text" data-k="name" placeholder="本人姓名"></div>
+      <div class="field"><label>学号</label><input type="text" data-k="sid" placeholder="如 202501001"></div>
+      <div class="field"><label>今天轨道</label><select data-k="track"><option>轨A：网页小游戏升级</option><option>轨B：中国主题短片升级</option><option>轨C：跨学科通用作品（调研/演讲/策划）</option></select></div>
+      <div class="field"><label>作品名称</label><input type="text" data-k="proj" placeholder="如：PIGMENT. 墨迹弹珠"></div>
+    </div>
+  </section>
+
+  <section class="mod-card blue">
+    <div class="mod-head">
+      <div><div class="mod-num">模块 1 · 动手前先画 4 步路线</div><h2>拆出 4 个小步骤 + 写下“绝对不许改坏的 3 件事”</h2></div>
+      <button class="btn no-print" onclick="openModal('P1')">复制 1 号话术</button>
+    </div>
+    <p class="mod-desc">先复制桌面原文件留个旧备份！再用 1 号话术拆清 4 步，选好给 AI 放多大权，锁死最怕被改坏的好功能。</p>
+    <table class="work-table">
+      <thead><tr><th style="width:16%;">步骤</th><th style="width:38%;">这步要做什么（大白话一句）</th><th style="width:24%;">给 AI 放多大权</th><th style="width:22%;">我怎么验过关</th></tr></thead>
+      <tbody>
+        <tr><td><strong>1. 定痛点</strong></td><td><input type="text" data-k="s1" placeholder="找出最影响体验的 1-2 点"></td><td><select data-k="l1"><option>第1档·我定死规矩</option><option>第2档·帮我挑毛病微调</option></select></td><td><input type="text" data-k="v1" placeholder="写清不笼统"></td></tr>
+        <tr><td><strong>2. 调内容</strong></td><td><input type="text" data-k="s2" placeholder="玩法手感或脚本句子"></td><td><select data-k="l2"><option>第2档·帮我挑毛病微调</option><option>第1档·我定死规矩</option></select></td><td><input type="text" data-k="v2" placeholder="试玩/通读检查"></td></tr>
+        <tr><td><strong>3. 调画面</strong></td><td><input type="text" data-k="s3" placeholder="配色、清晰度与视觉反馈"></td><td><select data-k="l3"><option>第2档·帮我挑毛病微调</option><option>第1档·我定死规矩</option></select></td><td><input type="text" data-k="v3" placeholder="截图前后对比"></td></tr>
+        <tr><td><strong>4. 亲手试</strong></td><td><input type="text" data-k="s4" placeholder="测打开、操控与重来"></td><td><select data-k="l4"><option>第1档·我定死规矩</option><option>第2档·帮我挑毛病微调</option></select></td><td><input type="text" data-k="v4" placeholder="双击打开没白屏"></td></tr>
+      </tbody>
+    </table>
+    <div class="field"><label>绝对不许改坏的 3 件事（防止 AI 顺手把好功能全删了）</label><textarea data-k="keep" placeholder="1. ...
+2. ...
+3. ..."></textarea></div>
+  </section>
+
+  <section class="mod-card red">
+    <div class="mod-head">
+      <div><div class="mod-num">模块 2 · 两轮看图挑毛病与同桌试玩精修</div><h2>第 1 版 → 新版草稿 → 正式第 2 版进化记录</h2></div>
+      <div style="display:flex;gap:8px;" class="no-print"><button class="btn" onclick="openModal('P2')">复制 2 号话术</button><button class="btn" onclick="openModal('P2B')">复制续修话术</button></div>
+    </div>
+    <p class="mod-desc">第 1 轮把运行截图或初稿发给 AI 当冷酷挑刺主编找 3 个毛病；同桌试玩给 1 条真吐槽后，第 2 轮精修定稿第 2 版！</p>
+    <div class="grid-2">
+      <div class="field"><label>第 1 轮 · AI 挑刺主编揪出的 3 个具体小毛病</label><textarea data-k="r1Critic" placeholder="1. [具体位置] ...
+2. ...
+3. ..."></textarea></div>
+      <div class="field"><label>第 1 轮 · 新版草稿改好了哪里？（确认原功能完好）</label><textarea data-k="r1Fix" placeholder="说明实际变好了哪些地方，原功能没改崩"></textarea></div>
+    </div>
+    <div class="grid-2">
+      <div class="field"><label>同桌试玩真实吐槽（同桌姓名 + 1 条真痛点）</label><textarea data-k="peerNote" placeholder="同桌：___｜他的真实吐槽：..."></textarea></div>
+      <div class="field"><label>第 2 轮 · 吸收同桌吐槽精修出的正式第 2 版亮点</label><textarea data-k="r2Final" placeholder="说明针对同桌建议做了什么贴心优化，记得存下前后对比图！"></textarea></div>
+    </div>
+    <label class="check-item"><input type="checkbox" data-k="chkBackup"><span>我已在电脑留好了旧备份，并且亲手打开验过正式第 2 版没白屏、原有好功能全在。</span></label>
+  </section>
+</main>
+<div class="modal-bg no-print" id="pModal"><div class="modal-box"><div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid rgba(0,0,0,0.08);padding-bottom:12px;"><strong>第 7 周大白话话术快捷复制</strong><button class="btn" onclick="closeModal()">关闭</button></div><div id="pTabs" style="display:flex;gap:8px;margin-top:12px;"></div><pre class="prompt-pre" id="pPre"></pre><div style="display:flex;justify-content:flex-end;"><button class="btn primary" onclick="copyP()">一键复制这段话术</button></div></div></div>
+<div class="toast" id="toast"></div>
+<script>
+const SK = 'icuc_series_w7_plain_v2';
+const PROMPTS = {
+  P0: `【救急起手话术：仅当你上周第 1 版丢了时用】\n请帮我做一个双击浏览器就能玩的《墨迹弹珠》单文件网页小游戏初版：\n- 3:4 竖版台面上有顶部彩色弧形色块与底部左右挡板，玩家按 A/D 或点击画布左右侧挥拍弹珠撞碎色块；\n- 包含发球重置按钮和色块进度计数；全写在一个 HTML 文件里，不依赖任何联网素材。`,
+  P1: `【1 号话术：先拆 4 步再干活】\n先别急着替我改代码或改稿！请当我的项目整理助手，帮我把作品升级拆成清清楚楚的 4 步。\n我的作品类型：【网页小游戏 / 短片 / 策划或任意自选作品】\n现在能做什么、最不满意什么：【用大白话写 2-3 句】\n请用最通俗的中文给我 3 块内容：1. 升级的 4 步人话路线；2. 哪步必须我定死规矩、哪步适合让你帮我挑刺；3. 绝对不许改坏的 3 件事。`,
+  P2: `【2 号话术：发截图当挑刺主编，再保留优点微调】\n（如果工具能传图，请顺手把你的画面截图一起发上去！）\n请你分两步帮我升级，先当“冷酷挑刺主编”，再当“细心修改员”。\n当前作品内容：【粘贴代码或文案】\n绝对不许改坏的 3 件事：【粘贴】\n【第一步 · 冷酷挑刺主编（不许夸我！）】请睁大眼睛直接指出 3 个具体位置的小毛病（比如背景死灰无纸感、撞碎色块没水彩晕染、底部缺操作提示，拒绝“不够精致”之类空话）。\n【第二步 · 细心修改员】严格照这 3 条做最小修改，100% 保留我原有的好功能，输出完整新版，再给我 3 条我打开后该检查什么的小清单。`,
+  P2B: `【续修话术：吸收同桌真实吐槽】\n刚才我请同桌试玩/试看了我的新版草稿，他给了下面这条真实吐槽：【粘贴同桌的吐槽】\n请你在 100% 保留刚才全部好功能的前提下，专门只针对同桌这条建议做一次贴心优化，输出正式第 2 版并告诉我改了哪里。`
+};
+const TAB_LABELS = { P0:'救急起手', P1:'1号·拆4步', P2:'2号·看图挑刺', P2B:'续修·吸收吐槽' };
+const EX = {
+  game: { name:'林同学（示范）', sid:'202501008', track:'轨A：网页小游戏升级', proj:'PIGMENT. 墨迹弹珠（第1版→第2版）', s1:'锁死灰框无纸感、撞碎无水彩扩散与漏球弹窗挫败 3 个具体痛点', l1:'第1档·我定死规矩', v1:'列出明确痛点位置', s2:'保留 A/D 与点击左右挡板击球，换用金/银/铜/墨球零挫败机制', l2:'第2档·帮我挑毛病微调', v2:'玩 30 秒手感顺', s3:'发截图换成暖象牙冷压棉纸、剪纸凹槽投影、真水彩晕染与极细轨迹线', l3:'第2档·帮我挑毛病微调', v3:'截图对比一眼蜕变', s4:'双击离线实测挡板、水彩晕染与重置清空', l4:'第1档·我定死规矩', v4:'没白屏没报错', keep:'1. 浏览器离线双击单文件直接玩，绝不引入联网库；\n2. A/D 键与点击画布左右侧挥拍和空格发球丝滑好用；\n3. 点重置画布后所有色块与水彩彻底清空重来。', r1Critic:'1. [画框区] 死灰直角铁皮框，毫无冷压棉纸纹理与剪纸凹槽投影；\n2. [撞击反馈] 撞碎方砖干巴巴消失，毫无水彩毛细扩散与极细轨迹线；\n3. [底部体验] 漏球弹出刺眼失败框且缺 3 秒上手提示。', r1Fix:'完整保住挡板与发球！换上暖白冷压棉纸、亚麻卡纸凹槽阴影、减色水彩扩散与 1.1 像素波洛克极细轨迹线。', peerNote:'同桌：陈同学｜真实吐槽：“水彩美炸了！但开局黑色提示条刚好压住了底部的金色发球圆环，而且轨迹线稍粗！”', r2Final:'用续修话术只改 2 处：把提示条挪到最底边 28 像素处首次点击即淡出，轨迹线收细至 1.1 像素针管笔质感！已存前后对比图。', chkBackup:true }
+};
+function toast(m){ const t=document.getElementById('toast'); t.textContent=m; t.style.display='block'; clearTimeout(window._tt); window._tt=setTimeout(()=>t.style.display='none',2200); }
+function val(k){ const el=document.querySelector(`[data-k="${k}"]`); return !el?'':(el.type==='checkbox'?el.checked:el.value); }
+function setVal(k,v){ const el=document.querySelector(`[data-k="${k}"]`); if(!el)return; if(el.type==='checkbox')el.checked=Boolean(v); else el.value=v??''; }
+function save(){
+  const d={}; document.querySelectorAll('[data-k]').forEach(el=>d[el.dataset.k]=el.type==='checkbox'?el.checked:el.value);
+  try{ localStorage.setItem(SK, JSON.stringify(d)); document.getElementById('saveStatus').textContent='已自动保存 '+new Date().toTimeString().slice(0,8); }catch(e){}
+  const cs=[Boolean(val('name').trim()&&val('proj').trim()), Boolean(val('s1').trim()&&val('keep').trim()), Boolean(val('r1Critic').trim()&&val('r1Fix').trim()), Boolean(val('peerNote').trim()&&val('r2Final').trim()), Boolean(val('chkBackup'))];
+  const n=cs.filter(Boolean).length, p=Math.round(n/cs.length*100);
+  document.getElementById('progFill').style.width=p+'%'; document.getElementById('progText').textContent=`${p}% (${n} / ${cs.length} 项)`;
+}
+function isDemoPayload(){
+  const nm = val('name') || '';
+  if (nm.includes('示范')) return true;
+  const sigs = ['林同学（示范）','PIGMENT. 墨迹弹珠（第1版→第2版）','锁死灰框无纸感、撞碎无水彩扩散与漏球弹窗挫败','同桌：陈同学｜真实吐槽'];
+  const allTxt = Array.from(document.querySelectorAll('[data-k]')).map(el => el.type==='checkbox'?'':String(el.value||'')).join(' ');
+  return sigs.filter(s => allTxt.includes(s)).length >= 2;
+}
+function syncDemoBanner(){
+  const b = document.getElementById('demoBanner'), t = document.getElementById('demoBannerTxt');
+  if (!b) return;
+  if (isDemoPayload()) { b.className = 'demo-banner no-print show'; t.textContent = '当前为「老师示范浏览态」——看懂颗粒度后请点右侧清空并填写你自己的真实作品（示范态不可直接导出交卷）'; }
+  else b.className = 'demo-banner no-print';
+}
+window.loadEx=(k)=>{ Object.entries(EX[k]).forEach(([a,b])=>setVal(a,b)); save(); syncDemoBanner(); toast('已载入示范（仅浏览参考，不可直接导出）'); };
+window.clearForm=(force)=>{
+  const hasReal = !isDemoPayload() && Array.from(document.querySelectorAll('[data-k]')).some(el => el.type!=='checkbox' && el.tagName!=='SELECT' && String(el.value||'').trim().length > 0);
+  if (!force && hasReal && !window.confirm('确定清空当前填写的内容吗？清空后无法恢复！')) return;
+  document.querySelectorAll('[data-k]').forEach(el=>{ if(el.type==='checkbox')el.checked=false; else if(el.tagName==='SELECT')el.selectedIndex=0; else el.value=''; });
+  save(); syncDemoBanner(); toast('已清空，请开始填你的作品！');
+};
+let cp='P1';
+window.openModal=(id)=>{ cp=id||'P1'; renderM(); document.getElementById('pModal').classList.add('open'); };
+window.closeModal=()=>document.getElementById('pModal').classList.remove('open');
+function renderM(){ document.getElementById('pTabs').innerHTML=Object.keys(PROMPTS).map(k=>`<button class="btn ${k===cp?'primary':''}" onclick="swP('${k}')">${TAB_LABELS[k]}</button>`).join(''); document.getElementById('pPre').textContent=PROMPTS[cp]; }
+window.swP=(k)=>{ cp=k; renderM(); };
+window.copyP=()=>navigator.clipboard.writeText(PROMPTS[cp]).then(()=>toast('已复制话术')).catch(()=>toast('请手动复制'));
+window.exportMd=()=>{
+  if (isDemoPayload()) {
+    const b = document.getElementById('demoBanner'), t = document.getElementById('demoBannerTxt');
+    if (b) { b.className = 'demo-banner no-print show err'; t.textContent = '拦截导出：检测到当前仍是老师示范内容！请先点击右侧「清空」并填写你自己的真实作品后再导出报告。'; b.scrollIntoView({behavior:'smooth', block:'center'}); }
+    toast('示范内容不可导出，请先清空填自己的作品！');
+    return;
+  }
+  const md=`# 第 7 周作业报告（拆步骤与两轮看图挑毛病）\n- 姓名：${val('name')}｜学号：${val('sid')}｜轨道：${val('track')}｜作品：${val('proj')}\n\n## 模块 1｜4 步拆解与不许改坏清单\n1. 定痛点：${val('s1')}（${val('l1')}｜验收：${val('v1')}）\n2. 调内容：${val('s2')}（${val('l2')}｜验收：${val('v2')}）\n3. 调画面：${val('s3')}（${val('l3')}｜验收：${val('v3')}）\n4. 亲手试：${val('s4')}（${val('l4')}｜验收：${val('v4')}）\n\n**绝对不许改坏的 3 件事：**\n${val('keep')}\n\n## 模块 2｜两轮看图挑毛病升级（第 1 版 → 第 2 版）\n- **第 1 轮 AI 挑出的 3 个毛病：**\n${val('r1Critic')}\n- **第 1 轮新版草稿改好了哪里：**\n${val('r1Fix')}\n- **同桌试玩真实吐槽：**\n${val('peerNote')}\n- **第 2 轮正式第 2 版亮点：**\n${val('r2Final')}\n- **旧备份与没白屏核验：** ${val('chkBackup')?'[已确认]':'[未勾选]'}\n`;
+  const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([md],{type:'text/markdown;charset=utf-8'})); a.download=`W7_${val('sid')||'学号'}_${val('name')||'姓名'}_反思升级第2版.md`; a.click(); toast('已导出第 7 周报告！');
+};
+document.querySelectorAll('[data-k]').forEach(el=>{ el.addEventListener('input',()=>{save();syncDemoBanner();}); el.addEventListener('change',()=>{save();syncDemoBanner();}); });
+try{ const raw=localStorage.getItem(SK); if(raw) Object.entries(JSON.parse(raw)).forEach(([a,b])=>setVal(a,b)); }catch(e){}
+save(); syncDemoBanner();
+</script>
+</body>
+</html>

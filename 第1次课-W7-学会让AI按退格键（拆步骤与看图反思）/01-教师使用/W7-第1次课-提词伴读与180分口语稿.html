@@ -1,0 +1,310 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>W7 第1次课｜学会让AI按退格键 · 提词伴读台</title>
+  <style>
+    :root {
+      --color-ground: #F5F5F7; --color-surface: #FFFFFF; --color-surface-tint: #EFEFF2; --color-surface-dark: #0A0A0C;
+      --color-ink: #1D1D1F; --color-ink-secondary: #515154; --color-ink-muted: #86868B; --color-hairline: rgba(0,0,0,0.08);
+      --color-accent: #0071E3; --color-accent-blue: #0071E3; --color-accent-blue-soft: #EFF6FF;
+      --color-accent-amber: #B45309; --color-accent-amber-bg: #FFFBEB; --color-accent-amber-line: #F59E0B; --color-volt: #19FF00;
+      --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "PingFang SC", "Hiragino Sans GB", "Helvetica Neue", Arial, sans-serif;
+      --font-mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+      --script-size: 16px;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    ::selection { background: var(--color-accent); color: #FFFFFF; }
+    .tabular { font-variant-numeric: tabular-nums; }
+    html, body { margin: 0; padding: 0; height: 100%; overflow: hidden; background: var(--color-ground); color: var(--color-ink); font-family: var(--font-sans); -webkit-font-smoothing: antialiased; }
+    .app { display: grid; grid-template-rows: 54px 1fr; height: 100vh; }
+    .topbar { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 0 20px; background: #0D0D10; color: #F5F5F7; border-bottom: 1px solid rgba(255,255,255,0.08); }
+    .tb-left, .tb-mid, .tb-right { display: flex; align-items: center; gap: 8px; }
+    .brand-tag { display: inline-flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.14); color: #FFFFFF; font-size: 11.5px; font-weight: 600; padding: 4px 11px; border-radius: 999px; }
+    .brand-tag::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--color-volt); }
+    .brand-name { font-size: 13.5px; font-weight: 600; white-space: nowrap; color: #E4E4E7; }
+    .tb-btn { appearance: none; border: 1px solid rgba(255,255,255,0.14); background: rgba(255,255,255,0.07); color: #F5F5F7; font-family: var(--font-sans); font-size: 12px; font-weight: 600; padding: 5px 11px; border-radius: 999px; cursor: pointer; transition: background-color 140ms ease; }
+    .tb-btn:hover { background: rgba(255,255,255,0.16); }
+    .tb-btn.blue { background: var(--color-accent); border-color: var(--color-accent); color: #FFFFFF; }
+    .tb-btn.blue:hover { background: #0077ED; }
+    .mini-timer { display: inline-flex; align-items: center; padding: 4px 12px; background: rgba(255,255,255,0.08); border-radius: 999px; font-family: var(--font-mono); font-size: 13px; font-weight: 600; color: #FFFFFF; }
+    .split { display: grid; grid-template-columns: 230px minmax(360px, 1fr) minmax(360px, 1.05fr); height: 100%; min-height: 0; }
+    .rail-list { background: #F5F5F7; border-right: 1px solid var(--color-hairline); overflow-y: auto; padding: 12px 10px; display: flex; flex-direction: column; gap: 3px; }
+    .rail-sec-hd { font-size: 11px; font-weight: 600; color: var(--color-ink-muted); padding: 12px 10px 5px; margin-bottom: 2px; }
+    .rail-btn { appearance: none; width: 100%; text-align: left; background: transparent; border: none; padding: 8px 10px; cursor: pointer; display: grid; grid-template-columns: 34px 1fr; gap: 6px; border-radius: 10px; color: var(--color-ink-secondary); font-size: 12.5px; line-height: 1.38; transition: background-color 140ms ease; }
+    .rail-btn:hover { background: rgba(0,0,0,0.045); color: var(--color-ink); }
+    .rail-btn.active { background: #FFFFFF; color: var(--color-ink); font-weight: 600; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+    .rail-num { font-family: var(--font-mono); font-size: 11px; font-weight: 600; color: var(--color-accent); }
+    .script-pane { background: #FAFAFC; border-right: 1px solid var(--color-hairline); overflow-y: auto; padding: 26px 28px 40px; display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+    .sp-head { border-bottom: 1px solid var(--color-hairline); padding-bottom: 14px; }
+    .sp-meta { display: flex; align-items: center; justify-content: space-between; font-family: var(--font-mono); font-size: 12px; color: var(--color-accent); font-weight: 600; margin-bottom: 6px; }
+    .sp-title { margin: 0; font-size: 22px; font-weight: 700; line-height: 1.3; letter-spacing: -0.02em; }
+    .cue-box { background: var(--color-accent-amber-bg); border-radius: 14px; padding: 12px 16px; font-size: 13.5px; color: #78350F; line-height: 1.55; }
+    .cue-box strong { color: var(--color-accent-amber); }
+    .interact-box { background: var(--color-accent-blue-soft); border-radius: 14px; padding: 12px 16px; font-size: 13.5px; color: #0B3B75; line-height: 1.55; }
+    .interact-box strong { color: var(--color-accent); }
+    .script-card { background: var(--color-surface); border-radius: 20px; padding: 22px 24px; font-size: var(--script-size); line-height: 1.88; color: var(--color-ink); white-space: pre-line; box-shadow: 0 2px 10px rgba(0,0,0,0.03); }
+    .nav-footer { display: flex; align-items: center; justify-content: space-between; padding-top: 14px; border-top: 1px solid var(--color-hairline); margin-top: auto; }
+    .nav-big { appearance: none; border: 1px solid rgba(0,0,0,0.12); background: var(--color-surface); color: var(--color-ink); font-size: 13.5px; font-weight: 600; padding: 9px 20px; border-radius: 999px; cursor: pointer; transition: background-color 150ms ease; }
+    .nav-big:hover { background: #EFEFF2; }
+    .nav-big.primary { background: #1D1D1F; border-color: #1D1D1F; color: #FFFFFF; }
+    .nav-big.primary:hover { background: #333336; }
+    .preview-pane { background: #09090B; display: flex; flex-direction: column; min-height: 0; min-width: 0; overflow: hidden; }
+    .preview-bar { display: flex; align-items: center; justify-content: space-between; padding: 10px 16px; background: #111114; border-bottom: 1px solid rgba(255,255,255,0.08); color: #A1A1AA; font-size: 12px; }
+    .preview-frame-wrap { flex: 1; padding: 18px; display: flex; align-items: center; justify-content: center; overflow: hidden; min-height: 0; min-width: 0; }
+    .preview-stage-box { position: relative; overflow: hidden; border: 1px solid rgba(255,255,255,0.14); border-radius: 14px; background: var(--color-ground); flex-shrink: 0; }
+    .preview-frame { position: absolute; top: 0; left: 0; width: 1360px; height: 820px; border: 0; transform-origin: top left; background: var(--color-ground); display: block; }
+    @media (max-width: 1120px) { .split { grid-template-columns: 180px 1fr; } .preview-pane { display: none; } }
+  </style>
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <div class="tb-left"><span class="brand-tag">W7 伴读</span><span class="brand-name">W7 第1次课｜学会让AI按退格键 · 提词伴读台</span></div>
+    <div class="tb-mid">
+      <span class="mini-timer tabular" id="pTimerDisp">14:00</span>
+      <button class="tb-btn" onclick="startQuickTimer(300)">5′</button>
+      <button class="tb-btn" onclick="startQuickTimer(360)">6′</button>
+      <button class="tb-btn" onclick="startQuickTimer(600)">10′</button>
+      <button class="tb-btn" onclick="startQuickTimer(840)">14′</button>
+      <button class="tb-btn" onclick="startQuickTimer(900)">15′</button>
+      <button class="tb-btn" id="btnTimerToggle" onclick="toggleQuickTimer()">暂停</button>
+    </div>
+    <div class="tb-right">
+      <button class="tb-btn" onclick="changeFont(-1)">A-</button>
+      <button class="tb-btn" onclick="changeFont(1)">A+</button>
+      <button class="tb-btn blue" id="btnPopDeck">弹出/同步大屏课件</button>
+    </div>
+  </header>
+  <div class="split">
+    <aside class="rail-list" id="railList"></aside>
+    <section class="script-pane">
+      <div class="sp-head"><div class="sp-meta"><span id="spNum"></span><span id="spTime"></span></div><h1 class="sp-title" id="spTitle"></h1></div>
+      <div class="cue-box" id="spCue"></div>
+      <div class="interact-box" id="spInteract" style="display:none;"></div>
+      <div class="script-card" id="spBody"></div>
+      <div class="nav-footer">
+        <button class="nav-big" id="btnPrevSlide">上一页 [←]</button>
+        <span style="font-size:12px;color:var(--color-ink-muted);">键盘左右键双屏同步切页</span>
+        <button class="nav-big primary" id="btnNextSlide">下一页 [→]</button>
+      </div>
+    </section>
+    <section class="preview-pane">
+      <div class="preview-bar"><span>大屏同屏实时预览</span><span id="syncStatus">已就绪</span></div>
+      <div class="preview-frame-wrap" id="previewWrap"><div class="preview-stage-box" id="previewBox"><iframe id="slideFrame" class="preview-frame" src="W7-第1次课-大屏交互课件.html#p01" title="大屏预览"></iframe></div></div>
+    </section>
+  </div>
+</div>
+<script>
+const SCRIPTS = [
+  {
+    "sec": "第1段｜轻松破冰（25分钟）",
+    "time": "00:00–03:00",
+    "title": "封面：今天全程说大白话，最后5分钟再认专业词",
+    "cue": "停在第 1 页，指一下右侧『拔掉退格键』的银色键盘大片吊足胃口！给全班吃定心丸：今天全程大白话，只精讲《PIGMENT. 墨迹弹珠》这一个真实案例，用 30 分钟紧凑双轮实操现场改出第 2 版！",
+    "interact": "看右边这张键盘图——少了一颗什么键？（退格键！）先告诉大家一个好消息：今天全程说人话，咱们只吃透一个真正惊艳的《PIGMENT.》真实案例，再用 30 分钟双轮快节奏实操改出第 2 版，最后 5 分钟再拆彩蛋认名词！",
+    "body": "大家好，欢迎来到第 7 周！接下来连续三周，咱们慢慢消化斯坦福吴恩达教授最火的一门新课。\n怕大家一听专业名词就犯困，也怕案例太散记不住，这三周咱们全程只用一件真正做出来的美术馆级作品——《PIGMENT. 墨迹弹珠》一例到底！今天先练最管用的两招：先拆步骤留备份，再发截图让 AI 当冷酷挑刺主编。"
+  },
+  {
+    "sec": "第1段｜轻松破冰（25分钟）",
+    "time": "03:00–07:00",
+    "title": "三周轻松路线：看《PIGMENT.》真实成长四步",
+    "cue": "切第 2 页！4 张阶段卡片底部都配好了对应的真实可玩 HTML 网页（第 1 版灰框 / 第 2 版水彩初成含卡球暗病 / 第 3 版零卡球 / 终版 4 展板美术馆），可以直接点击任一张卡片底部的胶囊在新标签页横跳展示！",
+    "interact": "这 4 个阶段不是画大饼，下面每张卡片都能直接点开真实可玩的网页！记住哦：课上咱们把《PIGMENT.》这一个真实案例吃透，待会儿实操时照搬同一套方法套到你自己的作品上就行！",
+    "body": "看看这三周的轻松爬坡路线，四版全都能直接点开真机试玩：上周是能打开但漏球即弹窗失败的灰框弹珠；今天发截图挑刺换上冷压棉纸水彩；下周用错题体检表亲手修好弯月沟卡球，跑到 28 点压测全通；第三周精装 4 张大师展板和一键存画上台开秀！"
+  },
+  {
+    "sec": "第1段｜轻松破冰（25分钟）",
+    "time": "07:00–12:00",
+    "title": "上周的共同烦恼：点击对比糊涂问法 vs 聪明问法",
+    "cue": "切第 3 页！先停在反面示范，点右侧红色按钮『打开反面示范翻车网页 ↗』现场试按两下演示挡板失灵 + 一点就白屏崩溃；再回大屏切「高分示范」，点蓝色按钮『打开第 2 版真水彩网页 ↗』形成核弹级对比！",
+    "interact": "上周跟 AI 说『帮我改得更高级一点』结果挡板失灵甚至白屏翻车的举个手？我直接把反面示范翻车后的网页打开给你们看——按 A/D 根本不动、一点关卡直接白屏！再看贴了红线的高分示范第 2 版！",
+    "body": "左边这幕大家熟不熟？一贪心跟 AI 说『把弹珠改高级一点』，它哗啦啦重写四百行，打开就是右下方这个翻车网页——土味荧光紫、挡板失灵、点两下直接白屏！切到高分示范再点开第 2 版——只是换成『发截图挑 3 个刺 + 末尾贴红线』，旧功能一个没坏，直接长出真水彩！"
+  },
+  {
+    "sec": "第1段｜轻松破冰（25分钟）",
+    "time": "12:00–18:00",
+    "title": "扣掉退格键写期末论文的故事",
+    "cue": "切第 4 页，指向左侧『拔掉退格键的铝键盘』大片，用慢语速把“不准按退格键”这个画面讲活。",
+    "interact": "问前排同学：期末三千字论文，老师把你键盘上的退格键抠掉，不准删改一个字一口气写完，你能拿高分吗？",
+    "body": "吴恩达开场讲了一个谁都秒懂的比喻：我们以前发一句话就要 AI 交满分作业，就像逼人写论文全程不准按退格键、不准回头检查。\n真正高明的用法，是把人类正常干活的方式还给 AI——先列提纲、写个粗糙初稿、回头自己挑毛病、再按下退格键定向改出第 2 版！"
+  },
+  {
+    "sec": "第1段｜轻松破冰（25分钟）",
+    "time": "18:00–25:00",
+    "title": "互动柱状图：好方法反超贵会员！",
+    "cue": "切第 5 页，依次点击 3 个按钮拉长三根柱子；点完第 2 个故意停顿悬念！",
+    "interact": "猜猜看：同一个老版本 AI，一分钱不花升级，只是允许它先自查再改二稿，能从 48.1% 涨到多少？",
+    "body": "来看真实考试数据（依次点击）：老 AI 直接一笔画，只做对 48.1%；花大钱升级更贵的新 AI 直接一笔画，涨到 67.0%；再看第三根——还是那个老 AI，只要允许它回头挑错重改，直接冲到 95.1%！记住这句话：换好方法比花钱买最贵的会员还管用！"
+  },
+  {
+    "sec": "第1段｜轻松破冰（25分钟）",
+    "time": "25:00–29:00",
+    "title": "第 1 招案例拆解：《PIGMENT.》拆成 4 小步（嵌 4 步真机样板）",
+    "cue": "切第 6 页！依次点击顶部『第 1 步定痛点 → 第 2 步调手感 → 第 3 步调画面 → 第 4 步亲手试』，右侧实时嵌入 4 个独立可互动网页（红标解剖台 → 素白圆弧白模 → 真水彩混色 → 4 项实时绿勾验货台），还支持点击左下蓝色按钮独立全屏打开！",
+    "interact": "看右边内嵌的真机对比——第 2 步素白白模先调顺大圆弧和金银铜球，第 3 步才泼上青+黄减色水彩，第 4 步点一下 3 秒跑完 4 项验货绿勾！拆开做是不是一步比一步稳？",
+    "body": "第一招超简单：开工前先花 3 分钟，把《PIGMENT.》拆成 4 个小格子——定痛点、调手感、调画面、亲手试（依次点切 4 步让全班看右侧真实网页一步步成型）。拆开了，每一步独立验收，绝不混在一起改崩！"
+  },
+  {
+    "sec": "第2段｜两招现场示范（25分钟）",
+    "time": "29:00–34:00",
+    "title": "互动滑块：像带实习生一样分 3 档放权（嵌 3 档真机对比）",
+    "cue": "切第 7 页，左右拖动滑块或直接点 1 / 2 / 3 档按钮，右侧会实时切出《PIGMENT.》3 种截然不同的真实网页——第 1 档素灰标尺齐整零惊喜、第 2 档冷压棉纸真水彩又稳又美、第 3 档 AI 全权放飞反重力 5 球还抢走你的挡板！",
+    "interact": "看右边拉到第 3 档瞬间炸锅——AI 擅自加了 5 颗球、反转重力还把你的挡板抢走乱挥！今天改第 1 版，咱们该把滑块停在第几档？（第 2 档！）",
+    "body": "用 AI 就像带实习生（现场拖动 1→2→3 档让全班看右侧真机变化）：第 1 档严守尺寸最稳但 0 惊喜；第 2 档是今天主力——定底线、挑 3 刺，又稳又美；第 3 档全撒手容易彻底改飞，咱们留到第 3 次课系上安全带再玩！"
+  },
+  {
+    "sec": "第2段｜两招现场示范（25分钟）",
+    "time": "34:00–38:00",
+    "title": "防白屏两件护身符：留备份 + 《PIGMENT.》3 条红线",
+    "cue": "切第 8 页！先指左侧真实桌面文件夹示范，再切换右侧『贴了红线（稳）』与『没贴红线（翻车）』，照着念清 3 条不许动红线。",
+    "interact": "",
+    "body": "记牢两件保命护身符：第一，先复制一份原件封存，万一改崩 3 秒钟满血复活；第二，每次提要求末尾必贴 3 条红线——保操控、保单文件、保范围，绝不让 AI 全文重写！"
+  },
+  {
+    "sec": "第2段｜两招现场示范（25分钟）",
+    "time": "38:00–43:00",
+    "title": "第 2 招：先当冷酷挑刺主编，再当修改员",
+    "cue": "切第 9 页！指着左侧『嘴甜拍马屁 vs 冷酷主编真挑刺』对比，再指右侧『放大镜审查平板线框』大片强调一定要发真实截图！",
+    "interact": "平时 AI 是不是最爱夸你『物理逻辑清晰、整体不错』？今天咱们给它戴上冷酷主编的放大镜，逼它讲真话！",
+    "body": "第二招太好用了！AI 天生嘴甜爱顺着夸你，所以你要直接截一张真实屏幕画面发给它，先逼它当冷酷主编只挑 3 个具体硬伤，再照这 3 条保留优点微调！"
+  },
+  {
+    "sec": "第2段｜两招现场示范（25分钟）",
+    "time": "43:00–50:00",
+    "title": "现场真机试玩：《PIGMENT.》第 1 版 → 水彩美术馆版！",
+    "cue": "切第 10 页！全场最高光时刻：先点画布左右玩 5 秒干瘪灰框弹珠初稿，再点按钮 2 圈出 3 处具体硬伤，最后点按钮 3 原地亮出真机可玩的《PIGMENT.》水彩美术馆版！随时切换底部 01–04 展板或点右下大按钮全屏震撼全场！",
+    "interact": "谁想上来点 5 秒这个丑爆的灰框初版？好，现在点按钮 3——亲眼看看真水彩在冷压棉纸上实时晕染的《PIGMENT.》！",
+    "body": "光发代码 AI 根本不知道死灰方框有多丑！现在左边就是真能打的第 1 版灰框弹珠，是不是 3 秒就想关？点按钮 2，发截图后 AI 一眼圈出三个硬伤；再点按钮 3——冷压棉纸、剪纸凹槽投影、撞击实时毛细晕染、波洛克极细轨迹线和 4 张现代派大师展板全来了！大家先休息 10 分钟，回来一口气 30 分钟双轮实战搞定第 2 版！"
+  },
+  {
+    "sec": "第3段｜紧凑双轮实操（30分钟）",
+    "time": "60:00–74:00",
+    "title": "实操第 1 轮（14 分钟）：留备份拆 4 步出新版草稿",
+    "cue": "切第 11 页，点「开始 14:00」！先花 1 分钟切一下右边『高分改法示范 / 踩坑反例』给全班看清颗粒度；第 6 分钟口头报时提醒大家切入发截图跑 2 号话术，全程走下讲台排障。",
+    "interact": "",
+    "body": "欢迎回来！接下来 30 分钟一鼓作气打完双轮实操！第 1 轮 14 分钟：前 2 分钟复制留备份，中间 4 分钟跑 1 号话术拆 4 步贴 3 条红线，最后 8 分钟新开窗发截图跑 2 号话术改出新版草稿并双击确认没白屏！"
+  },
+  {
+    "sec": "第3段｜紧凑双轮实操（30分钟）",
+    "time": "74:00–80:00",
+    "title": "同桌互玩吐槽会（6 分钟）：1′ 快测 + 每人 2.5′ 真吐槽",
+    "cue": "切第 12 页，点「开始 06:00」！前 1 分钟带全班快选 A/B/C（选 B），后 5 分钟同桌交换电脑速玩（第 3.5 分钟报时换边），时间到直接无缝进第 13 页，中间不插休息！",
+    "interact": "互玩前 1 分钟快考：A、B、C 三条吐槽哪一条喂给 AI 10 秒就能修好？（B！）现在开始每人 2.5 分钟互玩，直接给同桌抓出 1 个最扎心的具体痛点！",
+    "body": "手先离键盘！1 分钟快测（点 B 亮绿灯），记住啥叫真吐槽！现在每人 2 分半钟交换电脑速玩，别说客套废话，直接送对方 1 条精确到位置的真吐槽，记进任务单马上开改第 2 轮！"
+  },
+  {
+    "sec": "第3段｜紧凑双轮实操（30分钟）",
+    "time": "80:00–90:00",
+    "title": "实操第 2 轮（10 分钟）：吸收吐槽定稿正式第 2 版",
+    "cue": "切第 13 页，点「开始 10:00」！指一下右边黑框里《PIGMENT.》真实续修记录（挪提示条、收细轨迹线），第 6 分钟提醒大家并排截下前后对比图并勾完任务单。",
+    "interact": "",
+    "body": "最后 10 分钟冲刺定稿！前 6 分钟把同桌的真吐槽填进续修话术，严令 AI 保留全部优点只改这 1 点（5 秒能手改的直接手改）；后 4 分钟并排截好第 1 版和第 2 版对比图、勾完任务单，马上大屏开秀！"
+  },
+  {
+    "sec": "第4段｜晒对比、认名词与收工（30分钟）",
+    "time": "90:00–105:00",
+    "title": "大屏晒变化（15 分钟）：照万能 3 句模板开秀",
+    "cue": "切第 14 页，请 3–4 位同学对照左侧『上台 60 秒万能 3 句示范』投屏晒一晒前后对比图，带动全场掌声！",
+    "interact": "不用紧张，照大屏左边 3 句话讲：左边旧版、右边新版、哪条挑刺最神！谁先来？",
+    "body": "太棒了！请三四位同学照着万能 3 句模板把前后对比图投到大屏上，让我们看看今天谁的作品变身最惊艳！"
+  },
+  {
+    "sec": "第4段｜晒对比、认名词与收工（30分钟）",
+    "time": "105:00–110:00",
+    "title": "最后 5 分钟彩蛋：揭秘今天亲手用过的 4 个专业词！",
+    "cue": "切第 15 页！这是全场最爽的揭晓环节——一张一张点击翻转 4 张卡片（或最后点一键全翻），带大家轻松读一遍记住意思就行，不用死背拼写！",
+    "interact": "大家是不是觉得今天特别简单？现在我揭晓个秘密：你们刚刚亲手干完的 4 件事，在硅谷大厂和论文里其实叫这 4 个听起来特吓人的名字——来一张张翻开看！",
+    "body": "最后花 5 分钟咱们揭秘一下名词小词典！\n点第 1 张：以前抠掉退格键一句话逼 AI 交卷，行话叫 Zero-shot（零样本单次提示）；\n点第 2 张：今天学的拆步、写草稿、挑毛病、改二稿循环，就是大名鼎鼎的 Agentic Workflow（智能体工作流）；\n点第 3 张：先当冷酷挑刺主编再微调，行话叫 Reflection（反思模式）；\n点第 4 张：发截图让 AI 睁眼看图，就是 VLM 多模态大模型！\n你看，先亲手学会干活、再贴上专业标签，是不是一秒全懂了、再也不怕被行业黑话唬住了？"
+  },
+  {
+    "sec": "第4段｜晒对比、认名词与收工（30分钟）",
+    "time": "110:00–120:00",
+    "title": "交卷前 3 项打卡自查与下周预告",
+    "cue": "切第 16 页！带着全班把左侧 3 项打包自查清单逐条点成绿色对勾（3/3 全绿），确认无人漏文件后轻松下课！",
+    "interact": "下课前最后 1 分钟跟我一起点亮大屏这 3 个绿勾——报告导出了吗？备份和第 2 版都在吗？齐活！",
+    "body": "现在花两分钟跟着大屏 3 项自查打卡（依次点绿 3 条）：点右上角导出报告、核对旧备份+第 2 版+对比图齐了再发邮箱。下周咱们看看《PIGMENT.》美成这样后藏着什么真实卡球暗病，学用《错题体检表》做外科手术，下课！"
+  }
+];
+let idx = 0, fontSize = 16, deckPopup = null, syncChannel = null;
+try {
+  syncChannel = new BroadcastChannel("icuc_series_w7");
+  syncChannel.onmessage = (ev) => {
+    if (ev.data && ev.data.type === 'slideChanged' && typeof ev.data.index === 'number') selectSlide(ev.data.index, false);
+  };
+} catch (e) {}
+const railList = document.getElementById('railList'), slideFrame = document.getElementById('slideFrame');
+let lastSec = '';
+SCRIPTS.forEach((s, i) => {
+  if (s.sec !== lastSec) {
+    lastSec = s.sec;
+    const hd = document.createElement('div'); hd.className = 'rail-sec-hd'; hd.textContent = s.sec; railList.appendChild(hd);
+  }
+  const btn = document.createElement('button'); btn.className = 'rail-btn'; btn.dataset.index = i;
+  btn.innerHTML = `<span class="rail-num">P${String(i+1).padStart(2,'0')}</span><span>${s.title}</span>`;
+  btn.onclick = () => selectSlide(i, true);
+  railList.appendChild(btn);
+});
+function selectSlide(newIdx, pushSync) {
+  idx = Math.max(0, Math.min(SCRIPTS.length - 1, newIdx));
+  const s = SCRIPTS[idx], num = String(idx + 1).padStart(2, '0');
+  document.getElementById('spNum').textContent = `第 ${num} / ${SCRIPTS.length} 页 · ${s.sec}`;
+  document.getElementById('spTime').textContent = s.time;
+  document.getElementById('spTitle').textContent = s.title;
+  document.getElementById('spCue').innerHTML = `<strong>[切页 / 动作] </strong>${s.cue}`;
+  const inter = document.getElementById('spInteract');
+  if (s.interact) { inter.style.display = 'block'; inter.innerHTML = `<strong>[互动提问] </strong>${s.interact}`; }
+  else inter.style.display = 'none';
+  document.getElementById('spBody').textContent = s.body;
+  railList.querySelectorAll('.rail-btn').forEach(b => {
+    const act = Number(b.dataset.index) === idx; b.classList.toggle('active', act);
+    if (act) b.scrollIntoView({ block: 'nearest' });
+  });
+  if (pushSync) {
+    try { slideFrame.contentWindow.postMessage({ type: 'seriesGoto', index: idx }, '*'); } catch (e) {}
+    try { if (syncChannel) syncChannel.postMessage({ type: 'goto', index: idx }); } catch (e) {}
+    try { if (deckPopup && !deckPopup.closed) deckPopup.postMessage({ type: 'seriesGoto', index: idx }, '*'); } catch (e) {}
+    document.getElementById('syncStatus').textContent = `已同步至第 ${num} 页`;
+  }
+}
+window.addEventListener('message', (e) => {
+  if (e.data && e.data.type === 'seriesSlideChanged' && typeof e.data.index === 'number') selectSlide(e.data.index, false);
+});
+document.getElementById('btnPrevSlide').onclick = () => selectSlide(idx - 1, true);
+document.getElementById('btnNextSlide').onclick = () => selectSlide(idx + 1, true);
+document.getElementById('btnPopDeck').onclick = () => {
+  deckPopup = window.open(`W7-第1次课-大屏交互课件.html#p${String(idx+1).padStart(2,'0')}`, "icuc_series_w7_win", 'width=1360,height=820');
+  document.getElementById('syncStatus').textContent = '双屏已联动';
+};
+window.changeFont = (d) => { fontSize = Math.max(13, Math.min(24, fontSize + d)); document.documentElement.style.setProperty('--script-size', fontSize + 'px'); };
+window.addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowRight' || e.key === 'PageDown') { e.preventDefault(); selectSlide(idx + 1, true); }
+  else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); selectSlide(idx - 1, true); }
+});
+let qLeft = 840, qHandle = null;
+const fmt = (sec) => `${String(Math.floor(sec/60)).padStart(2,'0')}:${String(sec%60).padStart(2,'0')}`;
+window.startQuickTimer = (sec) => {
+  if (qHandle) clearInterval(qHandle); qLeft = sec;
+  document.getElementById('pTimerDisp').textContent = fmt(qLeft);
+  document.getElementById('btnTimerToggle').textContent = '暂停';
+  qHandle = setInterval(() => {
+    if (qLeft > 0) { qLeft--; document.getElementById('pTimerDisp').textContent = fmt(qLeft); }
+    else { clearInterval(qHandle); qHandle = null; document.getElementById('pTimerDisp').textContent = '00:00 时间到'; }
+  }, 1000);
+};
+window.toggleQuickTimer = () => {
+  const btn = document.getElementById('btnTimerToggle');
+  if (qHandle) { clearInterval(qHandle); qHandle = null; btn.textContent = '继续'; }
+  else if (qLeft > 0) startQuickTimer(qLeft);
+};
+function fitPreview() {
+  const wrap = document.getElementById('previewWrap'), box = document.getElementById('previewBox'), frame = document.getElementById('slideFrame');
+  if (!wrap || !box || !frame) return;
+  const scale = Math.min(Math.max(200, wrap.clientWidth - 32) / 1360, Math.max(160, wrap.clientHeight - 32) / 820);
+  box.style.width = Math.floor(1360 * scale) + 'px'; box.style.height = Math.floor(820 * scale) + 'px';
+  frame.style.transform = `scale(${scale})`;
+}
+window.addEventListener('resize', fitPreview); fitPreview(); selectSlide(0, false);
+</script>
+</body>
+</html>

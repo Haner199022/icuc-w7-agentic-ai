@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>第 2 步｜调手感：大圆弧顺滑滑道 + 金银铜墨零挫败白模</title>
+<style>
+  * { box-sizing: border-box; user-select: none; }
+  html, body {
+    margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
+    background: #f5f5f7; color: #1d1d1f;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "PingFang SC", "Helvetica Neue", Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .shell {
+    width: 100%; height: 100%;
+    display: grid; grid-template-rows: 54px 1fr 54px;
+    align-items: center; justify-items: center; padding: 0 20px;
+  }
+  body.embed-mode .shell {
+    grid-template-rows: 1fr 42px; padding: 6px 8px 4px; gap: 4px;
+  }
+  .top-bar {
+    width: 100%; max-width: 1060px;
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  }
+  .brand-txt { font-size: 15px; font-weight: 700; white-space: nowrap; }
+  
+  .step-nav-bar {
+    display: inline-flex; align-items: center; gap: 4px; padding: 3px;
+    border-radius: 999px; background: rgba(29, 28, 25, 0.08); flex-shrink: 0;
+  }
+  .step-nav-pill {
+    text-decoration: none; font-size: 11.5px; font-weight: 600;
+    padding: 5px 11px; border-radius: 999px; color: #515154; white-space: nowrap;
+    transition: background-color 150ms ease, color 150ms ease;
+  }
+  .step-nav-pill:hover { color: #1d1d1f; background: rgba(255,255,255,0.75); }
+  .step-nav-pill.current { background: #1d1d1f; color: #ffffff; }
+  body.embed-mode .top-bar, body.embed-mode .engine-tag, body.embed-mode .hint-overlay { display: none !important; }
+
+  .stage-wrap {
+    width: 100%; height: 100%; min-height: 0;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .frame {
+    position: relative; aspect-ratio: 3 / 4;
+    height: min(calc(100vh - 130px), 740px);
+    max-width: calc(100vw - 24px);
+    border-radius: 6px; overflow: hidden;
+    background: #ffffff; box-shadow: 0 14px 36px rgba(0,0,0,0.09);
+    cursor: pointer; touch-action: none;
+  }
+  body.embed-mode .frame {
+    height: calc(100vh - 54px); max-width: calc(100vw - 16px);
+    box-shadow: 0 8px 22px rgba(0,0,0,0.08);
+  }
+  .frame canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  .medal-strip {
+    position: absolute; top: 10px; left: 50%; transform: translateX(-50%);
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 4px 12px; border-radius: 999px;
+    background: rgba(255,255,255,0.92); color: #1d1d1f;
+    font-size: 11.5px; font-weight: 700; white-space: nowrap;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.08); pointer-events: none;
+  }
+  .m-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+  .bottom-bar {
+    width: 100%; max-width: 1060px;
+    display: flex; align-items: center; justify-content: center; gap: 6px; flex-wrap: nowrap;
+  }
+  .pill-btn {
+    appearance: none; border: none; border-radius: 999px;
+    background: rgba(29,29,31,0.08); color: #1d1d1f;
+    font-family: inherit; font-size: 12px; font-weight: 600;
+    padding: 6px 12px; cursor: pointer; white-space: nowrap;
+    transition: background-color 140ms ease, color 140ms ease;
+  }
+  body.embed-mode .pill-btn { font-size: 11px; padding: 5px 9px; }
+  .pill-btn:hover { background: rgba(29,29,31,0.16); }
+  .pill-btn.primary { background: #0071e3; color: #ffffff; }
+</style>
+</head>
+<body>
+<div class="shell">
+  <header class="top-bar">
+    <div class="brand-txt">第 2 步｜调手感：素白大圆弧滑道 + 金/银/铜/墨球零挫败（暂不上水彩）</div>
+    <nav class="step-nav-bar" aria-label="P06 四步拆解切换"><a class="step-nav-pill" href="step1-painpoints.html">第 1 步 · 定痛点</a><a class="step-nav-pill current" href="step2-gameplay-feel.html">第 2 步 · 调手感</a><a class="step-nav-pill" href="step3-visual-material.html">第 3 步 · 调画面</a><a class="step-nav-pill" href="step4-hands-on-verify.html">第 4 步 · 亲手试</a></nav>
+  </header>
+  <main class="stage-wrap">
+    <div class="frame" id="frame">
+      <canvas id="cv" width="600" height="800"></canvas>
+      <div class="medal-strip" id="medalStrip"><span class="m-dot" id="mDot" style="background:#eab308;"></span><span id="mTxt">金球（0 漏球 · 零弹窗）</span></div>
+    </div>
+  </main>
+  <footer class="bottom-bar">
+    <button class="pill-btn primary" id="launchBtn">发球试手感 (Space)</button>
+    <button class="pill-btn" id="dropBtn">体验漏球降奖牌</button>
+    <button class="pill-btn" id="resetBtn">重置白模</button>
+  </footer>
+</div>
+<script>
+(() => {
+  'use strict';
+  if (new URLSearchParams(location.search).get('embed') === '1') document.body.classList.add('embed-mode');
+  const cv = document.getElementById('cv');
+  const ctx = cv.getContext('2d');
+  const frame = document.getElementById('frame');
+  const mDot = document.getElementById('mDot');
+  const mTxt = document.getElementById('mTxt');
+
+  const W = 600, H = 800, R = 11.2, SUB = 8;
+  const slopeAngle = 0.46, arcR = 112, leftWallX = 76, pivotX = 190, pivotY = 710, flen = 88, rS = 9.5, rE = 6.0;
+  const topLX = pivotX + Math.sin(slopeAngle) * rS;
+  const topLY = pivotY - Math.cos(slopeAngle) * rS;
+  const cxL = leftWallX + arcR;
+  const aCutL = Math.PI * 0.5 + slopeAngle;
+  const lTanX = cxL + Math.cos(aCutL) * arcR;
+  const lTanY = topLY - (topLX - lTanX) * Math.tan(slopeAngle);
+  const arcY = lTanY - Math.sin(aCutL) * arcR;
+
+  function sampleArc(cx, cy, r, a0, a1, n) {
+    const pts = [];
+    for (let i = 0; i <= n; i++) {
+      const a = a0 + (a1 - a0) * (i / n);
+      pts.push([cx + Math.cos(a) * r, cy + Math.sin(a) * r]);
+    }
+    return pts;
+  }
+
+  const cxR = W - leftWallX - arcR;
+  const aCutR = Math.PI * 0.5 - slopeAngle;
+  const topRX = W - topLX, topRY = topLY;
+  const rTanX = cxR + Math.cos(aCutR) * arcR, rTanY = arcY + Math.sin(aCutR) * arcR;
+  const drainL = 263, drainR = 337, drainY = 776;
+  const outerPoly = [
+    ...sampleArc(300, 260, 224, Math.PI, Math.PI * 2, 42),
+    [524, arcY],
+    ...sampleArc(cxR, arcY, arcR, 0, aCutR, 18),
+    [topRX, topRY], [405, 721], [drainR, drainY], [drainR, 835],
+    [drainL, 835], [drainL, drainY], [195, 721], [topLX, topLY],
+    ...sampleArc(cxL, arcY, arcR, aCutL, Math.PI, 18),
+    [76, 260]
+  ];
+  const wallSegs = [];
+  for (let i = 0; i < outerPoly.length; i++) {
+    const a = outerPoly[i], b = outerPoly[(i + 1) % outerPoly.length];
+    if (a[1] > 805 && b[1] > 805) continue;
+    if (Math.hypot(b[0] - a[0], b[1] - a[1]) < 0.5) continue;
+    wallSegs.push({ ax: a[0], ay: a[1], bx: b[0], by: b[1] });
+  }
+
+  const bumpers = [
+    { x: 300, y: 236, r: 30, pulse: 0 },
+    { x: 204, y: 344, r: 22, pulse: 0 },
+    { x: 396, y: 344, r: 22, pulse: 0 },
+    { x: 300, y: 468, r: 25, pulse: 0 }
+  ];
+  const flippers = [
+    { px: pivotX, py: pivotY, side: -1, rest: slopeAngle, act: -0.52, ang: slopeAngle, vel: 0 },
+    { px: W - pivotX, py: pivotY, side: 1, rest: Math.PI - slopeAngle, act: Math.PI + 0.52, ang: Math.PI - slopeAngle, vel: 0 }
+  ];
+
+  const MEDALS = [
+    { name: '金球', col: '#eab308', fill: ['#fff9d6','#ecc24d','#8a630d'] },
+    { name: '银球', col: '#94a3b8', fill: ['#ffffff','#cfd5dc','#64748b'] },
+    { name: '铜球', col: '#c87b46', fill: ['#fae0c6','#c87b46','#7c3f18'] },
+    { name: '墨球', col: '#27272a', fill: ['#71717a','#27272a','#09090b'] }
+  ];
+
+  let losses = 0, leftDown = false, rightDown = false, blocks = [], ball = null;
+
+  function makeBlocks() {
+    const out = [];
+    for (let i = 0; i < 8; i++) {
+      const a0 = Math.PI * (1.10 + i * 0.10) + 0.015;
+      const a1 = Math.PI * (1.10 + (i + 1) * 0.10) - 0.015;
+      const aMid = (a0 + a1) * 0.5;
+      out.push({ a0, a1, cx: 300 + Math.cos(aMid) * 212, cy: 260 + Math.sin(aMid) * 212, alive: true });
+    }
+    return out;
+  }
+
+  function updateMedalUI() {
+    const m = MEDALS[Math.min(3, losses)];
+    mDot.style.background = m.col;
+    mTxt.textContent = losses === 0
+      ? '金球（第 1 次发球 · 漏球不弹窗）'
+      : `${m.name}（已漏 ${losses} 球 → 自动降级继续玩！）`;
+  }
+
+  function spawn(fresh) {
+    if (!fresh) losses++;
+    ball = { x: 300, y: 608, vx: 0, vy: 0, state: 'ready' };
+    updateMedalUI();
+  }
+
+  function launch() {
+    if (ball.state !== 'ready') return;
+    const ang = -Math.PI * 0.5 + (Math.random() - 0.5) * 0.36;
+    ball.vx = Math.cos(ang) * 980;
+    ball.vy = Math.sin(ang) * 980;
+    ball.state = 'live';
+  }
+
+  function resetAll() {
+    losses = 0;
+    blocks = makeBlocks();
+    spawn(true);
+    setTimeout(launch, 280);
+  }
+
+  function colSeg(ax, ay, bx, by, rest) {
+    const abx = bx - ax, aby = by - ay;
+    const lenSq = abx * abx + aby * aby;
+    if (lenSq < 1e-6) return;
+    const t = Math.max(0, Math.min(1, ((ball.x - ax) * abx + (ball.y - ay) * aby) / lenSq));
+    const cx = ax + abx * t, cy = ay + aby * t;
+    const dx = ball.x - cx, dy = ball.y - cy, d = Math.hypot(dx, dy);
+    if (d >= R || d < 1e-5) return;
+    const nx = dx / d, ny = dy / d;
+    ball.x = cx + nx * R; ball.y = cy + ny * R;
+    const vn = ball.vx * nx + ball.vy * ny;
+    if (vn < 0) { ball.vx -= (1 + rest) * vn * nx; ball.vy -= (1 + rest) * vn * ny; }
+  }
+
+  function step(dt) {
+    const sdt = dt / SUB;
+    for (const bp of bumpers) bp.pulse = Math.max(0, bp.pulse - dt * 4);
+    for (let s = 0; s < SUB; s++) {
+      for (const f of flippers) {
+        const prev = f.ang;
+        const on = f.side < 0 ? leftDown : rightDown;
+        const tgt = on ? f.act : f.rest;
+        const spd = on ? 26 : 13.5;
+        f.ang += Math.sign(tgt - f.ang) * Math.min(Math.abs(tgt - f.ang), spd * sdt);
+        f.vel = (f.ang - prev) / sdt;
+      }
+      if (ball.state !== 'live') continue;
+      ball.vy += 880 * sdt;
+      ball.x += ball.vx * sdt;
+      ball.y += ball.vy * sdt;
+
+      for (const seg of wallSegs) colSeg(seg.ax, seg.ay, seg.bx, seg.by, 0.78);
+      for (const bp of bumpers) {
+        const dx = ball.x - bp.x, dy = ball.y - bp.y, d = Math.hypot(dx, dy);
+        if (d < bp.r + R && d > 1e-4) {
+          const nx = dx / d, ny = dy / d;
+          ball.x = bp.x + nx * (bp.r + R); ball.y = bp.y + ny * (bp.r + R);
+          ball.vx = nx * 580; ball.vy = ny * 580; bp.pulse = 1;
+        }
+      }
+      for (const bk of blocks) {
+        if (!bk.alive) continue;
+        if (Math.hypot(ball.x - bk.cx, ball.y - bk.cy) < 28) bk.alive = false;
+      }
+      for (const f of flippers) {
+        const tx = f.px + Math.cos(f.ang) * flen, ty = f.py + Math.sin(f.ang) * flen;
+        const abx = tx - f.px, aby = ty - f.py;
+        const t = Math.max(0, Math.min(1, ((ball.x - f.px) * abx + (ball.y - f.py) * aby) / (abx * abx + aby * aby)));
+        const cx = f.px + abx * t, cy = f.py + aby * t;
+        const capR = rS + (rE - rS) * t;
+        const dx = ball.x - cx, dy = ball.y - cy, d = Math.hypot(dx, dy);
+        if (d < R + capR && d > 1e-5) {
+          const nx = dx / d, ny = dy / d;
+          ball.x = cx + nx * (R + capR); ball.y = cy + ny * (R + capR);
+          const up = (f.side < 0 && f.vel < -3) || (f.side > 0 && f.vel > 3);
+          const vn = ball.vx * nx + ball.vy * ny;
+          if (vn < 0) { ball.vx -= (up ? 1.85 : 1.45) * vn * nx; ball.vy -= (up ? 1.85 : 1.45) * vn * ny; }
+          if (up && ball.vy > -760) ball.vy = -820;
+        }
+      }
+      if (ball.y > H + 30) {
+        spawn(false);
+        setTimeout(launch, 420);
+        break;
+      }
+    }
+  }
+
+  function render() {
+    // Clean architectural wireframe grey-white mat (NO watercolor yet!)
+    ctx.fillStyle = '#e5e5ea'; ctx.fillRect(0, 0, W, H);
+    ctx.save();
+    ctx.beginPath();
+    outerPoly.forEach((p, i) => i === 0 ? ctx.moveTo(p[0], p[1]) : ctx.lineTo(p[0], p[1]));
+    ctx.closePath();
+    ctx.fillStyle = '#fafaf9'; ctx.fill();
+    ctx.strokeStyle = '#71717a'; ctx.lineWidth = 2; ctx.stroke();
+    ctx.restore();
+
+    // Subtle blueprint arc annotation
+    ctx.save();
+    ctx.strokeStyle = 'rgba(0, 113, 227, 0.25)'; ctx.setLineDash([6, 5]); ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.arc(300, 260, 224, Math.PI, Math.PI * 2); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = '#0071e3'; ctx.font = '600 13px -apple-system, "PingFang SC", sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('白模验证：大圆弧顺滑滑道（暂不加任何水彩皮肤）', 300, 146);
+    ctx.restore();
+
+    // Neutral wireframe blocks (gray outlines only)
+    for (const bk of blocks) {
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(300, 260, 224, bk.a0, bk.a1);
+      ctx.arc(300, 260, 200, bk.a1, bk.a0, true);
+      ctx.closePath();
+      ctx.fillStyle = bk.alive ? '#d4d4d8' : 'rgba(212,212,216,0.2)';
+      ctx.fill();
+      ctx.strokeStyle = bk.alive ? '#52525b' : '#d4d4d8'; ctx.lineWidth = 1.5; ctx.stroke();
+      ctx.restore();
+    }
+
+    // Concentric launch rings
+    ctx.strokeStyle = 'rgba(29,29,31,0.16)'; ctx.lineWidth = 1;
+    [16, 30, 44].forEach(r => { ctx.beginPath(); ctx.arc(300, 608, r, 0, Math.PI*2); ctx.stroke(); });
+
+    // Wireframe bumpers
+    for (const bp of bumpers) {
+      ctx.save();
+      ctx.translate(bp.x, bp.y);
+      ctx.scale(1 + bp.pulse * 0.14, 1 + bp.pulse * 0.14);
+      ctx.fillStyle = '#ffffff'; ctx.beginPath(); ctx.arc(0, 0, bp.r, 0, Math.PI*2); ctx.fill();
+      ctx.strokeStyle = '#27272a'; ctx.lineWidth = 3; ctx.stroke();
+      ctx.beginPath(); ctx.arc(0, 0, bp.r * 0.45, 0, Math.PI*2); ctx.strokeStyle = '#a1a1aa'; ctx.lineWidth = 1.5; ctx.stroke();
+      ctx.restore();
+    }
+
+    // Sleek rounded tapered flippers
+    for (const f of flippers) {
+      ctx.save();
+      ctx.translate(f.px, f.py); ctx.rotate(f.ang);
+      ctx.beginPath();
+      ctx.moveTo(0, -rS); ctx.lineTo(flen, -rE);
+      ctx.arc(flen, 0, rE, -Math.PI*0.5, Math.PI*0.5);
+      ctx.lineTo(0, rS);
+      ctx.arc(0, 0, rS, Math.PI*0.5, Math.PI*1.5);
+      ctx.closePath();
+      ctx.fillStyle = '#1d1d1f'; ctx.fill();
+      ctx.fillStyle = '#ffffff'; ctx.beginPath(); ctx.arc(0, 0, 3, 0, Math.PI*2); ctx.fill();
+      ctx.restore();
+    }
+
+    // Medal ball (Gold -> Silver -> Bronze -> Ink)
+    const m = MEDALS[Math.min(3, losses)];
+    const g = ctx.createRadialGradient(ball.x - 3.5, ball.y - 3.5, 1.5, ball.x, ball.y, R);
+    g.addColorStop(0, m.fill[0]); g.addColorStop(0.5, m.fill[1]); g.addColorStop(1, m.fill[2]);
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(ball.x, ball.y, R, 0, Math.PI*2); ctx.fill();
+  }
+
+  window.addEventListener('keydown', (e) => {
+    const k = e.key.toLowerCase();
+    if (k === 'a' || k === 'arrowleft') { leftDown = true; if (ball.state === 'ready') launch(); }
+    if (k === 'd' || k === 'arrowright') { rightDown = true; if (ball.state === 'ready') launch(); }
+    if (e.code === 'Space') { e.preventDefault(); launch(); }
+  });
+  window.addEventListener('keyup', (e) => {
+    const k = e.key.toLowerCase();
+    if (k === 'a' || k === 'arrowleft') leftDown = false;
+    if (k === 'd' || k === 'arrowright') rightDown = false;
+  });
+  frame.addEventListener('pointerdown', (e) => {
+    if (ball.state === 'ready') launch();
+    const r = frame.getBoundingClientRect();
+    if ((e.clientX - r.left) < r.width * 0.5) leftDown = true; else rightDown = true;
+  });
+  window.addEventListener('pointerup', () => { leftDown = false; rightDown = false; });
+
+  document.getElementById('launchBtn').addEventListener('click', () => { if (ball.state === 'ready') launch(); else { ball.vy = -880; ball.vx = (Math.random()-0.5)*300; } });
+  document.getElementById('dropBtn').addEventListener('click', () => { spawn(false); });
+  document.getElementById('resetBtn').addEventListener('click', resetAll);
+
+  resetAll();
+  let last = null;
+  function loop(ts) {
+    if (last === null) last = ts;
+    const dt = Math.max(0, Math.min(0.033, (ts - last) / 1000));
+    last = ts;
+    step(dt);
+    render();
+    requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,1398 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>W7 第1次课｜学会让AI按退格键</title>
+  <style>
+    :root {
+      --color-ground: #F5F5F7;
+      --color-surface: #FFFFFF;
+      --color-surface-tint: #EFEFF2;
+      --color-surface-dark: #09090B;
+      --color-ink: #1D1D1F;
+      --color-ink-secondary: #515154;
+      --color-ink-muted: #86868B;
+      --color-hairline: rgba(0, 0, 0, 0.08);
+      --color-rule-strong: #1D1D1F;
+      --color-accent: #0071E3;
+      --color-accent-hover: #0077ED;
+      --color-accent-soft: #EFF6FF;
+      --color-accent-blue: #0071E3;
+      --color-accent-blue-soft: #EFF6FF;
+      --color-danger: #E11D48;
+      --color-danger-soft: #FFF1F2;
+      --color-accent-amber: #B45309;
+      --color-accent-amber-bg: #FFFBEB;
+      --color-accent-amber-line: #F59E0B;
+      --color-status-ok: #15803D;
+      --color-status-ok-soft: #F0FDF4;
+      --color-volt: #19FF00;
+      --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "PingFang SC", "Hiragino Sans GB", "Helvetica Neue", Arial, sans-serif;
+      --font-serif: -apple-system, BlinkMacSystemFont, "SF Pro Display", "PingFang SC", "Helvetica Neue", Arial, sans-serif;
+      --font-mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    ::selection { background: var(--color-accent); color: #FFFFFF; }
+    table, .tabular { font-variant-numeric: tabular-nums; }
+    html, body {
+      margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
+      background: var(--color-ground); color: var(--color-ink);
+      font-family: var(--font-sans); font-size: 16px; line-height: 1.55;
+      -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
+    }
+    .deck-chrome { position: fixed; inset: 0; display: grid; grid-template-rows: 50px 1fr 44px; background: var(--color-ground); }
+    .top-rail {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 36px; border-bottom: 1px solid var(--color-hairline);
+      background: rgba(245, 245, 247, 0.84);
+      -webkit-backdrop-filter: saturate(180%) blur(20px); backdrop-filter: saturate(180%) blur(20px);
+      z-index: 20;
+    }
+    .rail-left { display: flex; align-items: center; gap: 14px; min-width: 0; }
+    .bauhaus-mark { display: inline-flex; align-items: center; gap: 5px; flex-shrink: 0; }
+    .bauhaus-mark span { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+    .bm-red { background: #1D1D1F; } .bm-blue { background: #0071E3; } .bm-amber { background: #D2D2D7; }
+    .rail-course { font-family: var(--font-sans); font-size: 13px; font-weight: 700; white-space: nowrap; letter-spacing: -0.01em; }
+    .rail-section-label { font-size: 12.5px; color: var(--color-ink-muted); border-left: 1px solid var(--color-hairline); padding-left: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .rail-controls { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+    .ctrl-btn {
+      appearance: none; border: none; background: rgba(0, 0, 0, 0.055); color: var(--color-ink);
+      font-family: var(--font-sans); font-size: 12px; font-weight: 600; padding: 6px 13px; border-radius: 999px; cursor: pointer;
+      transition: background-color 150ms ease, color 150ms ease;
+    }
+    .ctrl-btn:hover { background: var(--color-ink); color: #FFFFFF; }
+    .stage-wrap { position: relative; width: 100%; height: 100%; overflow: hidden; display: flex; align-items: stretch; justify-content: center; }
+    .slide {
+      display: none; width: 100%; max-width: 1380px; height: 100%;
+      padding: 28px 56px 24px; flex-direction: column; justify-content: space-between; overflow-y: auto;
+    }
+    .slide.active { display: flex; }
+    .slide.dark-stage {
+      max-width: none;
+      background: radial-gradient(ellipse 75% 55% at 50% -12%, rgba(255,255,255,0.11), transparent 70%), var(--color-surface-dark);
+      color: #F5F5F7; padding: 44px 76px 36px;
+    }
+    .slide-head { border-bottom: 1px solid var(--color-hairline); padding-bottom: 14px; margin-bottom: 16px; flex-shrink: 0; }
+    .slide-meta-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 8px; }
+    .slide-meta-num {
+      font-family: var(--font-mono); font-size: 11.5px; font-weight: 600; letter-spacing: 0.02em;
+      color: var(--color-accent); background: var(--color-accent-soft); padding: 3px 10px; border-radius: 999px;
+    }
+    .dark-stage .slide-meta-num { background: rgba(255,255,255,0.08); color: #E4E4E7; border: 1px solid rgba(255,255,255,0.14); }
+    .slide-meta-tag { font-size: 12.5px; color: var(--color-ink-muted); font-weight: 500; }
+    .slide-title { margin: 0; font-size: clamp(24px, 2.45vw, 34px); font-weight: 700; line-height: 1.24; letter-spacing: -0.025em; color: var(--color-ink); text-wrap: balance; }
+    .slide-subtitle { margin: 8px 0 0; font-size: 15.5px; color: var(--color-ink-secondary); max-width: 72ch; }
+    .slide-body { flex: 1; display: flex; flex-direction: column; justify-content: center; padding: 6px 0 30px; gap: 16px; min-height: 0; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: stretch; }
+    .grid-2-wide { display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 20px; align-items: stretch; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; align-items: stretch; }
+    .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; align-items: stretch; }
+    .panel {
+      background: var(--color-surface); border: none; border-radius: 20px; padding: 22px 24px;
+      display: flex; flex-direction: column; gap: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+    }
+    .panel.tint { background: #EBEBF0; box-shadow: none; }
+    .stage-card { padding: 18px 20px; justify-content: space-between; gap: 14px; transition: outline-color 140ms ease, background-color 140ms ease; }
+    .stage-card-hit {
+      appearance: none; border: none; background: transparent; padding: 0; margin: 0;
+      text-align: left; cursor: pointer; display: flex; flex-direction: column; gap: 10px; width: 100%;
+      font-family: inherit; color: inherit;
+    }
+    .stage-open-link {
+      display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+      margin-top: auto; padding: 8px 14px; border-radius: 999px;
+      background: rgba(29, 29, 31, 0.07); color: var(--color-ink);
+      font-size: 13px; font-weight: 600; text-decoration: none;
+      transition: background-color 150ms ease, color 150ms ease;
+    }
+    .stage-open-link:hover { background: #1D1D1F; color: #FFFFFF; }
+    .stage-open-link.blue { background: var(--color-accent); color: #FFFFFF; }
+    .stage-open-link.blue:hover { background: var(--color-accent-hover); }
+    .stage-open-link.ok { background: #15803D; color: #FFFFFF; }
+    .stage-open-link.ok:hover { background: #166534; }
+    .stage-open-link.danger { background: #E11D48; color: #FFFFFF; }
+    .stage-open-link.danger:hover { background: #BE123C; }
+    .panel.accent-red { background: var(--color-surface); }
+    .panel.accent-blue { background: var(--color-surface); }
+    .panel.accent-amber { background: var(--color-surface); }
+    .panel.accent-ok { background: var(--color-surface); }
+    .panel.optical-dark {
+      background: #111114; color: #F5F5F7; border: 1px solid rgba(255,255,255,0.09); border-radius: 20px; box-shadow: none;
+    }
+    .panel-kicker {
+      display: inline-flex; align-items: center; gap: 6px; align-self: flex-start;
+      font-size: 11.5px; font-weight: 600; padding: 3px 10px; border-radius: 999px;
+      background: #F2F2F5; color: var(--color-ink-secondary);
+    }
+    .panel-kicker.red { background: var(--color-danger-soft); color: #BE123C; }
+    .panel-kicker.blue { background: var(--color-accent-soft); color: var(--color-accent); }
+    .panel-kicker.ok { background: var(--color-status-ok-soft); color: var(--color-status-ok); }
+    .panel-kicker.amber { background: var(--color-accent-amber-bg); color: var(--color-accent-amber); }
+    .optical-dark .panel-kicker { background: rgba(255,255,255,0.1); color: #E4E4E7 !important; }
+    .panel h3 { margin: 0; font-size: 20px; font-weight: 700; line-height: 1.3; letter-spacing: -0.015em; }
+    .panel p { margin: 0; font-size: 15.8px; line-height: 1.58; color: var(--color-ink-secondary); }
+    .panel.optical-dark p { color: #B4B4BE; }
+    .clean-list { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 9px; }
+    .clean-list li { position: relative; padding-left: 16px; font-size: 15.4px; line-height: 1.54; color: var(--color-ink); }
+    .clean-list li::before { content: ""; position: absolute; left: 0; top: 9px; width: 6px; height: 6px; border-radius: 50%; background: var(--color-ink); }
+    .clean-list.red li::before { background: var(--color-danger); }
+    .clean-list.blue li::before { background: var(--color-accent); }
+    .clean-list.ok li::before { background: var(--color-status-ok); }
+    .panel.optical-dark .clean-list li { color: #E4E4E7; }
+    .panel.optical-dark .clean-list li::before { background: var(--color-volt); }
+    .callout-strip {
+      background: var(--color-surface); border-radius: 16px;
+      padding: 14px 20px; font-size: 14.5px; line-height: 1.6; color: var(--color-ink); display: block;
+      box-shadow: 0 1px 6px rgba(0,0,0,0.025);
+    }
+    .callout-strip.blue { background: var(--color-accent-soft); color: #0B3B75; box-shadow: none; }
+    .callout-strip.ok { background: var(--color-status-ok-soft); color: #14532D; box-shadow: none; }
+    .callout-strip.amber { background: var(--color-accent-amber-bg); color: #78350F; box-shadow: none; }
+    .big-stat { font-family: var(--font-mono); font-size: 28px; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
+    .big-stat.red { color: var(--color-danger); } .big-stat.blue { color: var(--color-accent); } .big-stat.ok { color: var(--color-status-ok); }
+    table.arch-table {
+      width: 100%; border-collapse: separate; border-spacing: 0; font-size: 14px; background: var(--color-surface);
+      border: 1px solid #E5E5EA; border-radius: 18px; overflow: hidden;
+    }
+    table.arch-table th {
+      text-align: left; padding: 11px 14px; background: #F5F5F7; border-bottom: 1px solid #E5E5EA;
+      font-weight: 600; font-size: 13px; color: var(--color-ink-secondary);
+    }
+    table.arch-table td { padding: 11px 14px; border-bottom: 1px solid #EFEFF2; vertical-align: middle; color: var(--color-ink-secondary); }
+    table.arch-table tbody tr:last-child td { border-bottom: none; }
+    table.arch-table td strong { color: var(--color-ink); }
+    .mono-box {
+      font-family: var(--font-sans); font-size: 14.5px; line-height: 1.72; background: #141418; color: #E4E4E7;
+      padding: 16px 20px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.09); white-space: pre-wrap;
+    }
+    .mono-box .hl-red { color: #FB7185; font-weight: 700; } .mono-box .hl-amber { color: #FBBF24; font-weight: 700; }
+    .mono-box .hl-ok { color: #4ADE80; font-weight: 700; } .mono-box .hl-blue { color: #60A5FA; font-weight: 700; }
+    .action-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+    .act-btn {
+      appearance: none; border: 1px solid rgba(0,0,0,0.12); background: var(--color-surface); color: var(--color-ink);
+      font-family: var(--font-sans); font-size: 13.5px; font-weight: 600; padding: 9px 17px; border-radius: 999px; cursor: pointer;
+      transition: background-color 150ms ease, color 150ms ease, border-color 150ms ease;
+    }
+    .act-btn:hover { background: var(--color-surface-tint); }
+    .act-btn.selected { background: #1D1D1F; border-color: #1D1D1F; color: #FFFFFF; }
+    .act-btn.primary { background: var(--color-accent); border-color: var(--color-accent); color: #FFFFFF; }
+    .act-btn.primary:hover { background: var(--color-accent-hover); }
+    .act-btn.blue-sel.selected { background: var(--color-accent); border-color: var(--color-accent); color: #FFFFFF; }
+    .timer-widget {
+      display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 16px 24px;
+      background: #111114; color: #F5F5F7; border-radius: 20px; border: 1px solid rgba(255,255,255,0.09);
+    }
+    .timer-display { font-family: var(--font-mono); font-size: 38px; font-weight: 700; font-variant-numeric: tabular-nums; color: #FFFFFF; letter-spacing: -0.02em; }
+    .timer-display.done { color: #FBBF24; }
+    .timer-widget .act-btn { border-color: rgba(255,255,255,0.18); background: rgba(255,255,255,0.09); color: #F5F5F7; }
+    .timer-widget .act-btn:hover { background: rgba(255,255,255,0.16); }
+    .timer-widget .act-btn.primary { background: #FFFFFF; border-color: #FFFFFF; color: #09090B; }
+    .bar-track { display: grid; grid-template-columns: 230px 1fr 82px; align-items: center; gap: 14px; padding: 12px 0; border-bottom: 1px solid var(--color-hairline); }
+    .bar-track:last-child { border-bottom: none; }
+    .bar-outer { height: 22px; background: #EBEBF0; border-radius: 999px; overflow: hidden; }
+    .bar-fill { height: 100%; width: 0%; border-radius: 999px; transition: width 420ms cubic-bezier(.25,.1,.25,1); }
+    .bar-fill.m1 { background: #86868B; } .bar-fill.m2 { background: #1D1D1F; } .bar-fill.m3 { background: var(--color-accent); }
+    input[type="range"].bauhaus-range { width: 100%; accent-color: var(--color-accent); cursor: pointer; }
+    .ea-cell { cursor: pointer; text-align: center; font-size: 12.5px; font-weight: 600; user-select: none; transition: background-color 140ms ease, color 140ms ease; }
+    .ea-cell.ok { background: #FAFAFC; color: #86868B; }
+    .ea-cell.ok:hover { background: #EFEFF2; color: var(--color-ink); }
+    .ea-cell.fail { background: var(--color-danger); color: #FFFFFF; }
+    .ea-bar-row { display: grid; grid-template-columns: 142px 1fr 56px; align-items: center; gap: 10px; font-size: 13.5px; }
+    .ea-bar-bg { height: 14px; background: #EBEBF0; border-radius: 999px; overflow: hidden; }
+    .ea-bar-fg { height: 100%; background: #1D1D1F; border-radius: 999px; transition: width 220ms ease; }
+    .ea-bar-fg.top { background: var(--color-danger); }
+    /* Glossary Reveal Cards (P15 Dedicated — Apple Light to Obsidian Noir Flip) */
+    .gloss-card {
+      text-align: left; background: var(--color-surface); border: none; border-radius: 22px;
+      padding: 22px 22px 20px; cursor: pointer; display: flex; flex-direction: column; gap: 10px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.035);
+      transition: background-color 220ms ease, color 220ms ease, transform 180ms ease;
+    }
+    .gloss-card:hover { transform: translateY(-2px); }
+    .gloss-card.revealed { background: #0E0E11; color: #FFFFFF; box-shadow: none; }
+    .gloss-card.revealed:hover { background: #18181D; }
+    .gloss-card.revealed .panel-kicker { background: rgba(255,255,255,0.12); color: #E4E4E7; }
+    .gloss-plain { font-size: 16.5px; font-weight: 700; color: var(--color-ink); line-height: 1.38; letter-spacing: -0.015em; }
+    .gloss-card.revealed .gloss-plain { color: #FFFFFF; }
+    .gloss-hint { font-size: 13px; color: var(--color-ink-muted); }
+    .gloss-card.revealed .gloss-hint { color: #A1A1AA; }
+    .gloss-term {
+      margin-top: auto; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.14);
+      font-family: var(--font-mono); font-size: 14px; font-weight: 700; color: #60A5FA; display: none; line-height: 1.5;
+    }
+    .gloss-card.revealed .gloss-term span { color: #E4E4E7 !important; font-weight: 500 !important; }
+    .gloss-card.revealed .gloss-term { display: block; }
+    .gloss-card.revealed .gloss-prompt { display: none; }
+    .gloss-prompt {
+      margin-top: auto; padding-top: 12px; border-top: 1px solid var(--color-hairline);
+      font-size: 12.5px; font-weight: 600; color: var(--color-accent);
+    }
+
+    .cover-grid { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 52px; align-items: center; height: 100%; max-width: 1320px; margin: 0 auto; width: 100%; }
+    .cover-h1 { margin: 18px 0 18px; font-family: var(--font-sans); font-size: clamp(38px, 4.3vw, 56px); font-weight: 700; line-height: 1.12; letter-spacing: -0.03em; color: #FFFFFF; }
+    .cover-lead { font-size: 17px; line-height: 1.68; color: #A1A1AA; max-width: 54ch; margin: 0 0 32px; }
+    .cover-meta-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; border-top: 1px solid rgba(255,255,255,0.12); padding-top: 20px; }
+    .cover-meta-item small { display: block; font-size: 12px; color: #86868B; margin-bottom: 4px; }
+    .cover-meta-item strong { font-size: 14.5px; color: #F5F5F7; font-weight: 600; }
+    .bottom-rail {
+      display: flex; align-items: center; justify-content: space-between; padding: 0 36px;
+      border-top: 1px solid var(--color-hairline); background: rgba(245, 245, 247, 0.9); z-index: 20;
+    }
+    .progress-bar-wrap { flex: 1; max-width: 440px; height: 4px; background: #E2E2E7; border-radius: 999px; overflow: hidden; margin: 0 24px; }
+    .progress-bar-fill { height: 100%; background: var(--color-ink); border-radius: 999px; width: 0%; transition: width 200ms ease; }
+    .foot-meta { font-family: var(--font-mono); font-size: 12px; color: var(--color-ink-muted); font-variant-numeric: tabular-nums; }
+    .drawer-backdrop {
+      position: fixed; inset: 0; background: rgba(9, 9, 11, 0.56);
+      -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
+      display: none; align-items: center; justify-content: center; z-index: 50; padding: 28px;
+    }
+    .drawer-backdrop.open { display: flex; }
+    .drawer-box {
+      width: min(1080px, 95vw); max-height: 85vh; overflow-y: auto;
+      background: #FFFFFF; border-radius: 24px; padding: 26px 30px; box-shadow: 0 24px 60px rgba(0,0,0,0.24);
+    }
+    .drawer-head { display: flex; align-items: center; justify-content: space-between; padding-bottom: 14px; margin-bottom: 18px; border-bottom: 1px solid var(--color-hairline); }
+    .drawer-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+    .drawer-item { text-align: left; border: none; border-radius: 14px; background: var(--color-ground); padding: 12px 14px; cursor: pointer; transition: background-color 140ms ease; }
+    .drawer-item:hover { background: #E8E8ED; }
+    .drawer-item.current { background: #1D1D1F; color: #FFFFFF; }
+    .drawer-item .di-num { font-family: var(--font-mono); font-size: 11px; font-weight: 600; color: var(--color-accent); }
+    .drawer-item.current .di-num { color: #60A5FA; }
+    .drawer-item .di-title { font-size: 13px; font-weight: 600; color: var(--color-ink); margin-top: 4px; line-height: 1.35; }
+    .drawer-item.current .di-title { color: #FFFFFF; }
+    /* Editorial Photo Frames, Interactive Quizzes & Live Demo Canvas */
+    .photo-card {
+      position: relative; border-radius: 20px; overflow: hidden; background: #111114;
+      display: flex; flex-direction: column; min-height: 220px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    }
+    .photo-card img { width: 100%; height: 100%; object-fit: cover; display: block; flex: 1; }
+    .photo-cap {
+      position: absolute; left: 14px; right: 14px; bottom: 14px;
+      background: rgba(12, 12, 16, 0.76); -webkit-backdrop-filter: saturate(160%) blur(14px); backdrop-filter: saturate(160%) blur(14px);
+      color: #F5F5F7; padding: 9px 14px; border-radius: 12px; font-size: 12.5px; line-height: 1.45;
+      border: 1px solid rgba(255,255,255,0.12);
+    }
+    .photo-cap strong { color: #FFFFFF; }
+    .cover-photo-wrap {
+      position: relative; border-radius: 24px; overflow: hidden; border: 1px solid rgba(255,255,255,0.12);
+      background: #141418; aspect-ratio: 16 / 10; display: flex; flex-direction: column;
+    }
+    .cover-photo-wrap img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .demo-tabs { display: flex; flex-wrap: wrap; gap: 7px; }
+    .demo-tab {
+      appearance: none; border: none; background: #EFEFF2; color: var(--color-ink-secondary);
+      font-family: var(--font-sans); font-size: 12.5px; font-weight: 600; padding: 6px 14px; border-radius: 999px; cursor: pointer;
+      transition: background-color 140ms ease, color 140ms ease;
+    }
+    .demo-tab:hover { background: #E2E2E7; color: var(--color-ink); }
+    .demo-tab.active { background: #1D1D1F; color: #FFFFFF; }
+    .demo-tab.blue-tab.active { background: var(--color-accent); color: #FFFFFF; }
+    .quiz-btn {
+      appearance: none; width: 100%; text-align: left; border: 1px solid rgba(0,0,0,0.08);
+      background: #FAFAFC; color: var(--color-ink); padding: 11px 14px; border-radius: 14px;
+      font-family: var(--font-sans); font-size: 13.5px; line-height: 1.5; cursor: pointer;
+      transition: background-color 140ms ease, border-color 140ms ease;
+    }
+    .quiz-btn:hover { background: #EFEFF2; }
+    .quiz-btn.right { background: #F0FDF4; border-color: #16A34A; color: #14532D; }
+    .quiz-btn.wrong { background: #FFF1F2; border-color: #E11D48; color: #9F1239; }
+    .check-row {
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+      padding: 11px 14px; border-radius: 14px; background: #F5F5F7; font-size: 13.5px;
+    }
+    .check-pill { padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; background: #E5E5EA; color: #515154; white-space: nowrap; }
+    .check-pill.pass { background: #DCFCE7; color: #15803D; }
+    .check-pill.fail { background: #FFE4E6; color: #BE123C; }
+    .check-pill.run { background: #DBEAFE; color: #0071E3; }
+    .token-viz { display: flex; flex-wrap: wrap; align-items: center; gap: 7px; margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.1); }
+    .tok-chip { padding: 4px 10px; border-radius: 8px; font-family: var(--font-mono); font-size: 13px; font-weight: 700; background: rgba(96,165,250,0.16); color: #93C5FD; border: 1px solid rgba(96,165,250,0.35); }
+    .tok-chip.red { background: rgba(251,113,133,0.16); color: #FDA4AF; border-color: rgba(251,113,133,0.4); }
+    .tok-chip.ok { background: rgba(74,222,128,0.16); color: #86EFAC; border-color: rgba(74,222,128,0.4); }
+    .barbell-strip {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+      padding: 10px 14px; border-radius: 16px; background: #FFFFFF; box-shadow: 0 1px 6px rgba(0,0,0,0.025);
+      font-size: 13.5px; line-height: 1.5; color: var(--color-ink-secondary);
+    }
+    .barbell-item { display: flex; align-items: baseline; gap: 8px; }
+    .bb-tag { padding: 2px 9px; border-radius: 999px; font-size: 11.5px; font-weight: 700; white-space: nowrap; }
+    .bb-tag.fast { background: #DCFCE7; color: #15803D; }
+    .bb-tag.help { background: #FEF3C7; color: #B45309; }
+    .status-rail { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    .status-node {
+      padding: 10px 14px; border-radius: 14px; background: #FFFFFF; border: 1px solid rgba(0,0,0,0.06);
+      font-size: 13px; font-weight: 600; color: var(--color-ink-secondary); display: flex; align-items: center; gap: 8px;
+    }
+    .s-dot { width: 8px; height: 8px; border-radius: 50%; background: #D2D2D7; flex-shrink: 0; }
+    .status-node.ok { background: #F0FDF4; color: #14532D; border-color: #BBF7D0; }
+    .status-node.ok .s-dot { background: #16A34A; }
+    .status-node.err { background: #FFF1F2; color: #9F1239; border-color: #FECDD3; }
+    .status-node.err .s-dot { background: #E11D48; }
+    .status-node.warn { background: #EFF6FF; color: #0B3B75; border-color: #BFDBFE; }
+    .status-node.warn .s-dot { background: #0071E3; }
+    .canvas-shell { position: relative; border-radius: 16px; overflow: hidden; background: #EBE8E0; border: 1px solid rgba(0,0,0,0.08); height: 392px; display: flex; align-items: center; justify-content: center; }
+    .canvas-shell canvas { width: 100%; height: 100%; display: block; cursor: pointer; touch-action: none; }
+    .canvas-shell iframe { width: 100%; height: 100%; border: 0; display: none; background: #F5F5F7; }
+    .step-embed-shell { position: relative; border-radius: 14px; overflow: hidden; background: #F5F5F7; border: 1px solid rgba(0,0,0,0.08); height: 406px; width: 100%; }
+    .step-embed-shell iframe { width: 100%; height: 100%; border: 0; display: block; background: #F5F5F7; }
+    .game-ctrl-bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; margin-top: 4px; }
+    .g-pad { display: flex; align-items: center; gap: 6px; }
+    .g-key {
+      appearance: none; border: 1px solid rgba(0,0,0,0.1); background: #F5F5F7; color: var(--color-ink);
+      font-family: var(--font-sans); font-size: 12px; font-weight: 600; padding: 5px 12px; border-radius: 999px; cursor: pointer;
+      display: inline-flex; align-items: center; gap: 6px; transition: background-color 140ms ease, border-color 140ms ease, transform 100ms ease;
+    }
+    .g-key:hover { background: #EAEAEE; }
+    .g-key:active { transform: scale(0.97); }
+    .g-key.active { background: #1D1D1F; border-color: #1D1D1F; color: #FFFFFF; }
+    .g-key.demo { background: #0071E3; border-color: #0071E3; color: #FFFFFF; }
+    .g-key.demo:hover { background: #0077ED; }
+    .line-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
+    .roulette-card {
+      background: #111114; color: #FFFFFF; border-radius: 20px; padding: 20px 24px;
+      border: 1px solid rgba(255,255,255,0.1); display: flex; flex-direction: column; gap: 10px;
+    }
+    .pack-check-btn {
+      appearance: none; width: 100%; text-align: left; border: 1px solid rgba(0,0,0,0.08);
+      background: #F5F5F7; color: var(--color-ink); padding: 12px 15px; border-radius: 14px;
+      font-family: var(--font-sans); font-size: 14px; line-height: 1.5; cursor: pointer;
+      display: flex; align-items: center; gap: 10px; transition: background-color 140ms ease, border-color 140ms ease;
+    }
+    .pack-check-btn:hover { background: #EAEAEE; }
+    .pack-check-btn.done { background: #F0FDF4; border-color: #16A34A; color: #14532D; }
+    .pack-box {
+      width: 20px; height: 20px; border-radius: 6px; border: 1.5px solid #B0B0B8; background: #FFFFFF;
+      display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; flex-shrink: 0; color: transparent;
+    }
+    .pack-check-btn.done .pack-box { background: #16A34A; border-color: #16A34A; color: #FFFFFF; }
+    @media (max-width: 960px) { .slide { padding: 18px 22px; } .grid-2, .grid-2-wide, .grid-3, .grid-4, .cover-grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="deck-chrome">
+  <header class="top-rail">
+    <div class="rail-left">
+      <div class="bauhaus-mark" aria-hidden="true"><span class="bm-red"></span><span class="bm-blue"></span><span class="bm-amber"></span></div>
+      <span class="rail-course">第 7 周 · 第 1 次课（3小时）</span>
+      <span class="rail-section-label" id="railSectionLabel"></span>
+    </div>
+    <div class="rail-controls">
+      <button class="ctrl-btn" id="btnOverview">目录 [G]</button>
+      <button class="ctrl-btn" id="btnPrev">←</button>
+      <button class="ctrl-btn" id="btnNext">→</button>
+      <button class="ctrl-btn" id="btnFullscreen">全屏</button>
+    </div>
+  </header>
+  <main class="stage-wrap">
+    <section class="slide dark-stage active" data-sec="第1段｜轻松破冰（25分钟）" data-title="封面：学会让 AI 按退格键">
+      <div class="cover-grid">
+        <div>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span class="slide-meta-num">第 7 周 · 吴恩达新课三周系列（第 1 次课）</span>
+          </div>
+          <h1 class="cover-h1">学会让 AI“按退格键”：<br>先拆步骤，再看图挑毛病</h1>
+          <p class="cover-lead">今天全程说大白话、不背英文黑话、不装任何复杂软件！只练最管用的两招，现场直接玩真案例对比，用 30 分钟紧凑双轮实操把你的第 1 版稳稳改出肉眼变好的第 2 版。</p>
+          <div class="cover-meta-grid">
+            <div class="cover-meta-item"><small>主讲老师</small><strong>宋雨涵</strong></div>
+            <div class="cover-meta-item"><small>今天节奏</small><strong>50分案例互动 + 30分双轮实操</strong></div>
+            <div class="cover-meta-item"><small>下课前彩蛋</small><strong>最后 5 分钟翻牌认专业词</strong></div>
+          </div>
+        </div>
+        <div class="cover-photo-wrap">
+          <img src="../../assets/images/w7_backspace.jpg" alt="抠掉退格键的极简键盘">
+          <div class="photo-cap"><strong>今天核心两招：</strong>第 1 招先拆 4 步留备份 · 第 2 招发截图让 AI 当冷酷挑刺主编</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" data-sec="第1段｜轻松破冰（25分钟）" data-title="三周轻松路线：看《PIGMENT.》真实成长四步">
+      <div class="slide-head">
+        <div class="slide-meta-row"><span class="slide-meta-num">第 02 页</span><span class="slide-meta-tag">全课只吃透这 1 个真实标杆案例 · 点卡片看演进，点底部胶囊直接打开对应真实网页！</span></div>
+        <h2 class="slide-title">同一件作品养大三周：看《PIGMENT. 墨迹弹珠》如何从灰框长成美术馆版画</h2>
+      </div>
+      <div class="slide-body">
+        <div class="grid-4" id="w7TrackCards">
+          <div class="panel tint stage-card">
+            <button type="button" class="stage-card-hit" onclick="setW7Stage(1,this)"><span class="panel-kicker">上周 · 第 1 版</span><h3>能打开的灰框弹珠</h3><p>双击能弹球，但死灰背景、塑料色块、漏球直接弹窗失败，3 秒就想关。</p></button>
+            <a class="stage-open-link" href="../../assets/pigment/stage1-graybox.html" target="_blank">打开第 1 版网页 ↗</a>
+          </div>
+          <div class="panel stage-card" style="outline:2px solid var(--color-accent);">
+            <button type="button" class="stage-card-hit" onclick="setW7Stage(2,this)"><span class="panel-kicker blue">今天 · 第 2 版</span><h3>截图挑刺变水彩画</h3><p>留好备份发截图挑 3 个刺，换上冷压棉纸、剪纸凹槽与真实水彩晕染！</p></button>
+            <a class="stage-open-link blue" href="../../assets/pigment/stage2-watercolor-buggy.html" target="_blank">打开第 2 版网页 ↗</a>
+          </div>
+          <div class="panel tint stage-card">
+            <button type="button" class="stage-card-hit" onclick="setW7Stage(3,this)"><span class="panel-kicker">下周 · 第 3 版</span><h3>体检治好挡板卡球</h3><p>抓出外沟过窄楔死钢珠、挡板根部台阶绊球，微创修到 28 点压测全通！</p></button>
+            <a class="stage-open-link" href="../../assets/pigment/stage3-physics-fixed.html" target="_blank">打开第 3 版网页 ↗</a>
+          </div>
+          <div class="panel tint stage-card">
+            <button type="button" class="stage-card-hit" onclick="setW7Stage(4,this)"><span class="panel-kicker ok">第三周 · 终版秀</span><h3>4 展板美术馆终版</h3><p>3 人小团队精装 4 张大师展板、暗房模式与一键存画，上大屏 2 分钟开秀！</p></button>
+            <a class="stage-open-link ok" href="../../assets/pigment/stage4-gallery-final.html" target="_blank">打开终版美术馆 ↗</a>
+          </div>
+        </div>
+        <div class="callout-strip blue" id="w7StageNote"><strong>4 个阶段全部配有真实可玩网页：</strong>点击上方任意一张卡片底部的按钮，即可在新标签页里亲手试玩每一版（顶栏还支持 4 版一键横跳对比）！</div>
+      </div>
+    </section>
+
+    <section class="slide" data-sec="第1段｜轻松破冰（25分钟）" data-title="上周的共同烦恼：糊涂问法 vs 聪明问法">
+      <div class="slide-head">
+        <div class="slide-meta-row"><span class="slide-meta-num">第 03 页</span><span class="slide-meta-tag">课堂对比示范 · 点击切换两种真实聊天结局</span></div>
+        <h2 class="slide-title">为什么第 1 版玩得挺开心，一说“帮我改酷一点”就白屏崩了？</h2>
+      </div>
+      <div class="slide-body">
+        <div class="action-row">
+          <button class="act-btn blue-sel selected" onclick="setW7Chat(1,this)">反面示范：一句笼统愿望（90% 人中招）</button>
+          <button class="act-btn blue-sel" onclick="setW7Chat(2,this)">高分示范：带红线 + 只改 3 个具体小点</button>
+        </div>
+        <div class="grid-2">
+          <div class="panel optical-dark">
+            <span class="panel-kicker" id="w7ChatTag">真实聊天翻车现场</span>
+            <div class="mono-box" id="w7ChatBox" style="margin-top:6px;">我：帮我把弹珠小游戏改高级一点，顺便加点水彩特效和关卡吧！
+AI：好的！我为您大刀阔斧全部重写了一遍（420 行新代码）
+打开浏览器一看：
+  <span class="hl-red">[惨了]</span> 原来好用的左右挡板按键和发球全失效了
+  <span class="hl-red">[白屏]</span> 点画布毫无反应，整个网页一片空白
+  <span class="hl-amber">[后悔]</span> 旧文件直接被覆盖，连退回都没法退！</div>
+          </div>
+          <div class="panel" id="w7ChatNote" style="justify-content:space-between;">
+            <div style="display:flex;flex-direction:column;gap:10px;">
+              <span class="panel-kicker red">真不是你不会用电脑</span>
+              <h3>而是踩了三个新手最常犯的坑</h3>
+              <ul class="clean-list red">
+                <li><strong>要求太笼统：</strong>“更高级一点”有 100 种改法，AI 只能放飞自我乱重写。</li>
+                <li><strong>没划清红线：</strong>没告诉它“哪些好功能绝对不许碰”，它顺手全删了。</li>
+                <li><strong>没先找毛病：</strong>连哪里丑、哪里卡都没指出来，就让它推倒重来。</li>
+              </ul>
+            </div>
+            <a class="stage-open-link danger" href="../../assets/pigment/stage2-bad-rewrite.html" target="_blank" style="margin-top:12px;">打开反面示范翻车网页（亲手体验白屏崩坏）↗</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" data-sec="第1段｜轻松破冰（25分钟）" data-title="扣掉退格键写论文的故事">
+      <div class="slide-head">
+        <div class="slide-meta-row"><span class="slide-meta-num">第 04 页</span><span class="slide-meta-tag">吴恩达开场第 1 分钟最经典的生活比喻</span></div>
+        <h2 class="slide-title">发一句话就逼 AI 交满分，就像写期末论文“全程不准按退格键”</h2>
+      </div>
+      <div class="slide-body">
+        <div class="grid-2-wide">
+          <div class="photo-card" style="height:310px;">
+            <img src="../../assets/images/w7_backspace.jpg" alt="没有退格键的键盘">
+            <div class="photo-cap"><strong>想象一下：</strong>期末三千字论文，老师把你键盘上的退格键抠掉，不准回头删改一个字，你能写好吗？</div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:14px;">
+            <div class="panel tint" style="padding:18px 20px;">
+              <span class="panel-kicker red">以前的老办法 · 抠掉退格键硬憋</span>
+              <p>一句话扔给 AI，逼它从第一个字一口气写到结尾——不准停、不准查、不准回头改错。</p>
+            </div>
+            <div class="panel" style="padding:18px 20px;flex:1;">
+              <span class="panel-kicker blue">今天的新办法 · 像人一样打草稿重改</span>
+              <ul class="clean-list blue">
+                <li><strong>列小步骤：</strong>先想清 4 步，不急着一上来要终稿；</li>
+                <li><strong>先出草稿：</strong>做出粗糙但能跑通的第 1 版；</li>
+                <li><strong>睁眼挑刺：</strong>发截图找出 3 个最具体的小毛病；</li>
+                <li><strong>按退格改：</strong>保住优点，只修挑出来的那几处！</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" data-sec="第1段｜轻松破冰（25分钟）" data-title="真人实测对比：好方法居然能反超贵模型！">
+      <div class="slide-head">
+        <div class="slide-meta-row"><span class="slide-meta-num">第 05 页</span><span class="slide-meta-tag">课堂小互动 #1 · 先猜分数，再依次点按钮揭晓大反转</span></div>
+        <h2 class="slide-title">实测大反转：只要允许按退格键重改，便宜老 AI 居然反超最贵新 AI！</h2>
+      </div>
+      <div class="slide-body">
+        <div class="panel">
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
+            <span class="panel-kicker blue">吴恩达团队公开实测：同一套高难度考题的做对比例</span>
+            <div class="action-row">
+              <button class="act-btn blue-sel selected" onclick="setHe(1,this)">1. 老 AI 直接一笔画</button>
+              <button class="act-btn blue-sel" onclick="setHe(2,this)">2. 花大钱换最贵新 AI</button>
+              <button class="act-btn blue-sel" onclick="setHe(3,this)">3. 老 AI 允许自查重改</button>
+            </div>
+          </div>
+          <div style="margin-top:6px;">
+            <div class="bar-track"><div><strong>老版本 AI（直接答）</strong><br><small style="color:var(--color-ink-muted);">不准按退格键</small></div><div class="bar-outer"><div class="bar-fill m1" style="width:48.1%;"></div></div><div class="big-stat">48.1%</div></div>
+            <div class="bar-track"><div><strong>贵得多的新 AI（直接答）</strong><br><small style="color:var(--color-ink-muted);">花钱升级会员，仍不准涂改</small></div><div class="bar-outer"><div class="bar-fill m2" id="heB2"></div></div><div class="big-stat blue" id="heV2">--</div></div>
+            <div class="bar-track" style="border-bottom:0;"><div><strong>老版本 AI + 自查重改</strong><br><small style="color:var(--color-accent);font-weight:700;">同一个老 AI，只是让它先查错再改</small></div><div class="bar-outer"><div class="bar-fill m3" id="heB3"></div></div><div class="big-stat red" id="heV3">--</div></div>
+          </div>
+        </div>
+        <div class="callout-strip" id="heMsg"><strong>迁移到日常学习：</strong>写英文稿、改简历、调网页游戏都一样——<strong>与其花钱换软件抽卡，不如让免费 AI 先挑刺再改二稿！</strong></div>
+        <div style="font-size:12px;color:var(--color-ink-muted);text-align:right;margin-top:-6px;">数据出处：吴恩达团队 2024 年经典编程考题公开实测（同一老模型凭自查重改反超当时旗舰模型）</div>
+      </div>
+    </section>
+
+    <section class="slide" data-sec="第1段｜轻松破冰（25分钟）" data-title="第 1 招案例拆解：《PIGMENT.》拆成 4 小步">
+      <div class="slide-head">
+        <div class="slide-meta-row"><span class="slide-meta-num">第 06 页</span><span class="slide-meta-tag">4 步全配真实嵌入式可交互网页 · 点上方步骤实时切换右侧真机画面！</span></div>
+        <h2 class="slide-title">第 1 招：先别急着喊“做高级一点”，看《PIGMENT.》如何拆成 4 个小步骤</h2>
+      </div>
+      <div class="slide-body">
+        <div class="demo-tabs">
+          <button class="demo-tab blue-tab active" onclick="setW7Case(1,this)">第 1 步：定痛点</button>
+          <button class="demo-tab blue-tab" onclick="setW7Case(2,this)">第 2 步：调手感</button>
+          <button class="demo-tab blue-tab" onclick="setW7Case(3,this)">第 3 步：调画面</button>
+          <button class="demo-tab blue-tab" onclick="setW7Case(4,this)">第 4 步：亲手试</button>
+        </div>
+        <div class="grid-2" style="grid-template-columns: 0.92fr 1.08fr;">
+          <div class="panel" id="w7CaseSteps" style="justify-content:space-between;">
+            <div id="w7CaseBody" style="display:flex;flex-direction:column;gap:10px;">
+              <span class="panel-kicker blue">第 1 步 · 定痛点（把“太丑了”翻译成具体病灶）</span>
+              <ul class="clean-list blue" style="margin-top:4px;">
+                <li><strong>新手空话：</strong>“弹珠初版太廉价了，帮我改得像苹果设计奖作品！”</li>
+                <li><strong>高手拆法：</strong>锁定 3 个具体痛点——① 灰白方框毫无纸艺装裱感；② 撞碎色块毫无水彩晕染；③ 漏球直接弹窗失败太挫败；</li>
+                <li><strong>验收标准：</strong>写清这 3 处位置，让 AI 看完一眼知道刀该落在哪儿！</li>
+              </ul>
+            </div>
+            <a class="stage-open-link blue" id="w7StepFullLink" href="../../assets/pigment/step1-painpoints.html" target="_blank">独立全屏打开「第 1 步：定痛点」样板 ↗</a>
+          </div>
+          <div class="panel" style="padding:12px 14px;gap:8px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;">
+              <span class="panel-kicker" id="w7StepFrameLbl">真机嵌入样板 · 第 1 步：灰框 3 处病灶解剖台</span>
+              <span style="font-size:12px;color:var(--color-ink-muted);" id="w7StepFrameTip">点下方按钮逐项点亮红标病灶</span>
+            </div>
+            <div class="step-embed-shell">
+              <iframe id="w7StepFrame" src="../../assets/pigment/step1-painpoints.html?embed=1" title="PIGMENT 四步拆解实时嵌入样板"></iframe>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" data-sec="第2段｜两招现场示范（25分钟）" data-title="给 AI 放多大权？像带实习生一样分 3 档">
+      <div class="slide-head">
+        <div class="slide-meta-row"><span class="slide-meta-num">第 07 页</span><span class="slide-meta-tag">课堂小互动 #2 · 拖动滑块或点档位，右侧实时变出《PIGMENT.》对应真机产物！</span></div>
+        <h2 class="slide-title">什么时候该管严、什么时候能放手？像带实习生一样分 3 档</h2>
+      </div>
+      <div class="slide-body">
+        <div class="grid-2" style="grid-template-columns: 0.96fr 1.04fr;">
+          <div class="panel" style="justify-content:space-between;gap:12px;">
+            <div style="display:flex;flex-direction:column;gap:10px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+                <span class="panel-kicker red">拖动滑块感受“放权越大、越容易改飞”</span>
+                <span id="w7AutoBadge" style="font-size:12px;font-weight:600;padding:4px 12px;border-radius:999px;background:#0071E3;color:#FFFFFF;">第 2 档 · 帮我挑毛病微调（今天主力）</span>
+              </div>
+              <input type="range" id="w7AutoRange" min="1" max="3" step="1" value="2" class="bauhaus-range" oninput="setW7Auto(this.value)">
+              <div class="demo-tabs" id="w7AutoTabs" style="justify-content:space-between;">
+                <button type="button" class="demo-tab blue-tab" onclick="setW7Auto(1)">第 1 档 · 照规矩</button>
+                <button type="button" class="demo-tab blue-tab active" onclick="setW7Auto(2)">第 2 档 · 挑刺微调</button>
+                <button type="button" class="demo-tab blue-tab" onclick="setW7Auto(3)">第 3 档 · 全撒手</button>
+              </div>
+              <div class="panel tint" style="padding:11px 14px;gap:4px;"><span class="panel-kicker">带实习生类比</span><p id="w7AutoAna" style="color:var(--color-ink);font-weight:600;font-size:14.5px;">我定好方向和底线，请实习生帮我看图挑 3 个毛病再改小细节。</p></div>
+              <div class="panel tint" style="padding:11px 14px;gap:4px;"><span class="panel-kicker blue">对《PIGMENT.》这样开口说</span><p id="w7AutoFit" style="color:var(--color-ink);font-size:14.5px;">“保留左右挡板按键和发球不变，看截图只挑 3 个最丑的地方微调。”</p></div>
+              <div class="panel tint" style="padding:11px 14px;gap:4px;"><span class="panel-kicker red">稳不稳？</span><p id="w7AutoRisk" style="color:var(--color-ink);font-size:14.5px;">非常稳！只要附带“不许改坏的 3 件事”，又出彩又绝不白屏。</p></div>
+            </div>
+            <a class="stage-open-link blue" id="w7AutoFullLink" href="../../assets/pigment/tier2-guided-polish.html" target="_blank">独立全屏打开「第 2 档：挑刺微调」样板 ↗</a>
+          </div>
+          <div class="panel" style="padding:12px 14px;gap:8px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;">
+              <span class="panel-kicker blue" id="w7AutoFrameLbl">真机嵌入样板 · 第 2 档：保留操控 + 惊艳真水彩</span>
+              <span style="font-size:12px;color:var(--color-ink-muted);" id="w7AutoFrameTip">又稳又高级！直接点画布试手感</span>
+            </div>
+            <div class="step-embed-shell" style="height:444px;">
+              <iframe id="w7AutoFrame" src="../../assets/pigment/tier2-guided-polish.html?embed=1" title="PIGMENT 放权三档实时嵌入样板"></iframe>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" data-sec="第2段｜两招现场示范（25分钟）" data-title="防白屏护身符：有红线 vs 没红线对照">
+      <div class="slide-head">
+        <div class="slide-meta-row"><span class="slide-meta-num">第 08 页</span><span class="slide-meta-tag">保命对比示范 · 动手改之前必做的 2 件 30 秒小事</span></div>
+        <h2 class="slide-title">防白屏两件护身符：先复制留一份旧备份，再贴上“3 条不许动红线”</h2>
+      </div>
+      <div class="slide-body">
+        <div class="grid-2">
+          <div class="panel">
+            <span class="panel-kicker blue">护身符 1 · 3 秒复制留备份（真实文件夹示范）</span>
+            <h3>千万别在唯一的原文件上硬改</h3>
+            <div class="mono-box">我桌面上的作品文件夹：
+  ├── 第1版_原件备份.html   <span class="hl-ok">← 封存锁死！改坏 3 秒满血复活</span>
+  ├── 第2版_草稿.html       <span class="hl-blue">← 第 1 轮看图挑毛病改完的</span>
+  └── 第2版_正式.html       <span class="hl-amber">← 听完同桌吐槽打磨好的</span></div>
+          </div>
+          <div class="panel">
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
+              <span class="panel-kicker red">护身符 2 · 《PIGMENT.》3 条不许动红线</span>
+              <div class="demo-tabs">
+                <button class="demo-tab active" onclick="setW7Keep(1,this)">贴了红线（稳）</button>
+                <button class="demo-tab" onclick="setW7Keep(2,this)">没贴红线（翻车）</button>
+              </div>
+            </div>
+            <ul class="clean-list red" id="w7KeepList" style="margin-top:4px;">
+              <li><strong>保操控：</strong>左右挡板按键（A / D 与点击画布左右侧）与空格发球必须丝滑好用；</li>
+              <li><strong>保结构：</strong>继续零依赖单文件，浏览器双击直接玩，不许引入外部联网素材；</li>
+              <li><strong>保范围：</strong>只改挑出的 3 个画面与质感小点，<strong>绝对不许全文重写！</strong></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" data-sec="第2段｜两招现场示范（25分钟）" data-title="第 2 招：先当挑刺主编，再当修改员">
+      <div class="slide-head">
+        <div class="slide-meta-row"><span class="slide-meta-num">第 09 页</span><span class="slide-meta-tag">视觉大片 + 真话示范 · 告别只会拍马屁的 AI</span></div>
+        <h2 class="slide-title">第 2 招：别让 AI 顺着夸你！逼它先当“冷酷主编”挑 3 个具体刺再改</h2>
+      </div>
+      <div class="slide-body">
+        <div class="grid-2-wide">
+          <div style="display:flex;flex-direction:column;gap:14px;">
+            <div class="panel tint" style="padding:16px 20px;">
+              <span class="panel-kicker">平时嘴甜的 AI（越夸你越没用）</span>
+              <p>“您的弹珠游戏创意非常棒！物理反弹逻辑清晰，界面干净简洁，整体体验非常不错，建议可以继续保持并稍微提升一点精致度！”</p>
+            </div>
+            <div class="panel optical-dark" style="padding:18px 20px;flex:1;">
+              <span class="panel-kicker">发截图换上“冷酷挑刺主编”帽子后的真实回答</span>
+              <ul class="clean-list" style="margin-top:6px;">
+                <li><strong>毛病 1（台面）：</strong>死灰直边框配硬直角，毫无棉纸与剪纸凹槽质感；</li>
+                <li><strong>毛病 2（反馈）：</strong>撞碎色块直接凭空消失，毫无水彩晕染和轨迹线；</li>
+                <li><strong>毛病 3（体验）：</strong>漏球就弹刺眼失败框，底部也缺 3 秒上手提示！</li>
+              </ul>
+            </div>
+          </div>
+          <div class="photo-card" style="height:310px;">
+            <img src="../../assets/images/w7_critic_lens.jpg" alt="精密光学放大镜审视屏幕界面">
+            <div class="photo-cap"><strong>关键动作：</strong>直接截一张真实屏幕画面发给 AI，让它拿放大镜睁眼挑硬伤！</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" data-sec="第2段｜两招现场示范（25分钟）" data-title="现场真机试玩：《PIGMENT.》第 1 版 → 水彩美术馆版！">
+      <div class="slide-head">
+        <div class="slide-meta-row"><span class="slide-meta-num">第 10 页</span><span class="slide-meta-tag">课堂高能互动 #3 · 全场只看这一个真案例：先玩干瘪灰框初稿，再直接真机试玩《PIGMENT.》！</span></div>
+        <h2 class="slide-title">现场上手打 10 秒：对比“干瘪灰框弹珠初稿”vs“《PIGMENT.》水彩美术馆版”</h2>
+      </div>
+      <div class="slide-body">
+        <div class="action-row">
+          <button class="act-btn blue-sel selected" onclick="setW7Vlm(1,this)">1. 试玩第 1 版（干瘪灰框弹珠）</button>
+          <button class="act-btn blue-sel" onclick="setW7Vlm(2,this)">2. 发截图圈出 3 处具体硬伤</button>
+          <button class="act-btn blue-sel" onclick="setW7Vlm(3,this)">3. 真机试玩《PIGMENT.》水彩版！</button>
+        </div>
+        <div class="grid-2-wide">
+          <div class="panel" style="padding:12px 14px;gap:6px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <span class="panel-kicker" id="w7VlmLbl">真机试玩 · 第 1 版灰框弹珠（默认粗糙原型）</span>
+              <span style="font-size:12px;color:var(--color-ink-muted);" id="w7VlmScore">玩家感受：48分 · 点击画布左右击拍</span>
+            </div>
+            <div class="canvas-shell">
+              <canvas id="w7GameCanvas" width="1120" height="784"></canvas>
+              <iframe id="w7PigmentFrame" title="PIGMENT 墨迹弹珠真机试玩"></iframe>
+            </div>
+            <div class="game-ctrl-bar" id="w7DullBar">
+              <div class="g-pad">
+                <button class="g-key" onpointerdown="w7DullAct('left',1)" onpointerup="w7DullAct('left',0)" onpointerleave="w7DullAct('left',0)">左挡板</button>
+                <button class="g-key" onpointerdown="w7DullAct('right',1)" onpointerup="w7DullAct('right',0)" onpointerleave="w7DullAct('right',0)">右挡板</button>
+                <button class="g-key" onclick="w7DullAct('launch')">重新发球</button>
+              </div>
+              <button class="g-key demo" onclick="w7JumpPigment()">▶ 直接切真机《PIGMENT.》水彩版</button>
+            </div>
+          </div>
+          <div class="panel" id="w7VlmNote" style="justify-content:space-between;">
+            <div style="display:flex;flex-direction:column;gap:10px;">
+              <span class="panel-kicker red">亲手打两杆你就懂了</span>
+              <h3>电脑一行报错没有，但丑到 3 秒想关</h3>
+              <p>点击左边画布左右两侧挥拍弹球——死灰铁皮背景、粗糙红蓝方砖、撞碎只干巴巴消失，连一点纸感和水彩晕染都没有！点第 2、3 按钮，亲眼看发截图挑刺后诞生的<strong>真水彩流体美术馆版《PIGMENT.》</strong>！</p>
+            </div>
+            <a class="act-btn primary" href="../../assets/pigment/index.html" target="_blank" style="text-align:center;text-decoration:none;margin-top:auto;">独立全屏打开《PIGMENT.》美术馆 ↗</a>
+          </div>
+        </div>
+        <div class="callout-strip amber" style="padding:10px 18px;"><strong>体验完先课间休息 10 分钟！</strong>顺手解压微信群里的 W7 学生包（里面已附上完整《PIGMENT.》样板），回来一鼓作气用 30 分钟双轮实操打磨出第 2 版！</div>
+      </div>
+    </section>
+
+    <section class="slide" data-sec="第3段｜紧凑双轮实操与互玩（30分钟）" data-title="实操第 1 轮（14分钟）：留备份拆 4 步出新版草稿">
+      <div class="slide-head">
+        <div class="slide-meta-row"><span class="slide-meta-num">第 11 页</span><span class="slide-meta-tag">30 分钟双轮实操 · 第 1 轮（14′）· 下方附《PIGMENT.》高分示范 vs 反例</span></div>
+        <h2 class="slide-title">实操第 1 轮（14 分钟）：留备份、拆 4 步，发截图改出新版草稿</h2>
+      </div>
+      <div class="slide-body">
+        <div class="timer-widget">
+          <div><div style="font-size:12px;color:#A1A1AA;font-weight:600;">第 1 轮实操倒计时 · 节奏紧凑，卡壳随时举手</div><div class="timer-display" id="timer-w7r1">14:00</div></div>
+          <div class="action-row"><button class="act-btn primary" onclick="toggleTimer('w7r1',840,this)">开始 14:00</button><button class="act-btn" onclick="resetTimer('w7r1',840)">重置</button></div>
+        </div>
+        <div class="grid-2">
+          <div class="panel">
+            <span class="panel-kicker blue">这 14 分钟紧凑走完 3 步</span>
+            <ul class="clean-list blue">
+              <li><strong>2 分钟：</strong>复制留旧备份（上周文件丢了就用任务单里的<strong>救急话术</strong>快速重建）；</li>
+              <li><strong>4 分钟：</strong>复制<strong>1 号话术</strong>拆出 4 步 + 写死 3 条不许动清单；</li>
+              <li><strong>8 分钟：</strong>截张图贴给 AI 跑<strong>2 号话术</strong>挑 3 个刺出新版草稿，打开确认没白屏！</li>
+            </ul>
+          </div>
+          <div class="panel tint">
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;">
+              <span class="panel-kicker ok">《PIGMENT.》参考样板间</span>
+              <div class="demo-tabs">
+                <button class="demo-tab active" onclick="setW7Lab1(1,this)">高分改法示范</button>
+                <button class="demo-tab" onclick="setW7Lab1(2,this)">踩坑反例（别学）</button>
+              </div>
+            </div>
+            <p id="w7Lab1Txt" style="margin-top:6px;color:var(--color-ink);"><strong>《PIGMENT.》高分示范：</strong>“保留原有左右挡板按键和发球规则绝对不许动；只把背景换成暖白冷压棉纸加剪纸卡纸外框投影，撞碎彩砖时沿反弹方向爆出真水彩晕染并留下极细轨迹线。”</p>
+          </div>
+        </div>
+        <div class="barbell-strip">
+          <div class="barbell-item"><span class="bb-tag fast">快手加餐</span><span>提前跑通？顺手给 AI 再提 1 处细节（如金/银/铜零挫败奖牌球或一键导出画作），练练只改 1 处不崩盘！</span></div>
+          <div class="barbell-item"><span class="bb-tag help">卡壳救急</span><span>上周文件丢了或改白屏？打开任务单话术窗点<strong>「救急起手」</strong>，3 分钟原地生成一个弹珠初版！</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" data-sec="第3段｜紧凑双轮实操与互玩（30分钟）" data-title="同桌互玩吐槽会（6分钟）：先练眼力辨好坏吐槽">
+      <div class="slide-head">
+        <div class="slide-meta-row"><span class="slide-meta-num">第 12 页</span><span class="slide-meta-tag">30 分钟双轮实操 · 同桌互玩（6′）· 1 分钟快测 + 每人 2.5 分钟抓硬伤</span></div>
+        <h2 class="slide-title">同桌互玩 6 分钟：不说客套废话，送给对方 1 条“一针见血真吐槽”</h2>
+      </div>
+      <div class="slide-body">
+        <div class="timer-widget">
+          <div><div style="font-size:12px;color:#A1A1AA;font-weight:600;">同桌互玩倒计时（1′ 眼力小测 + 每人试玩 2.5′，随后直奔第 2 轮）</div><div class="timer-display" id="timer-w7peer">06:00</div></div>
+          <div class="action-row"><button class="act-btn primary" onclick="toggleTimer('w7peer',360,this)">开始 06:00</button><button class="act-btn" onclick="resetTimer('w7peer',360)">重置</button></div>
+        </div>
+        <div class="grid-2">
+          <div class="panel">
+            <span class="panel-kicker blue">小热身：点选下面哪条吐槽能真正帮同桌改好《PIGMENT.》？</span>
+            <div style="display:flex;flex-direction:column;gap:8px;">
+              <button class="quiz-btn" onclick="ansW7Quiz(this,false,'太客套啦！AI 拿到“挺漂亮的、再高级点”完全不知道改哪，等于白说。')">A. “水彩挺漂亮的，就是感觉整体还能再高级精致一点！”</button>
+              <button class="quiz-btn" onclick="ansW7Quiz(this,true,'满分真吐槽！有具体位置（底部开局提示条）、有具体痛点（压住了发球金球），喂给 AI 10 秒就能修好！')">B. “开局底部黑色操作提示条刚好压在金色发球圆环上，把它挪到最底边就能露出金球。”</button>
+              <button class="quiz-btn" onclick="ansW7Quiz(this,false,'太笼统！没说清是球太慢、太快还是挡板短，AI 只能胡乱乱改参数。')">C. “玩起来手感怪怪的，希望你让它更好玩一点。”</button>
+            </div>
+          </div>
+          <div class="panel tint">
+            <span class="panel-kicker ok">即时点评与同桌互玩任务</span>
+            <p id="w7QuizMsg" style="color:var(--color-ink);font-weight:600;">点击左侧 A / B / C 任意一条测试一下！</p>
+            <p style="margin-top:6px;">互玩时帮对方盯住 3 件事：① 3 秒内懂不懂怎么操作；② 哪一瞬间最卡手或遮挡画面；③ 比第 1 版真变好了吗？</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" data-sec="第3段｜紧凑双轮实操与互玩（30分钟）" data-title="实操第 2 轮（10分钟）：把同桌吐槽变成正式第 2 版">
+      <div class="slide-head">
+        <div class="slide-meta-row"><span class="slide-meta-num">第 13 页</span><span class="slide-meta-tag">30 分钟双轮实操 · 第 2 轮（10′）· 只改同桌指出的 1 点</span></div>
+        <h2 class="slide-title">实操第 2 轮（10 分钟）：把同桌的真吐槽喂给 AI，定稿正式第 2 版</h2>
+      </div>
+      <div class="slide-body">
+        <div class="timer-widget">
+          <div><div style="font-size:12px;color:#A1A1AA;font-weight:600;">第 2 轮定点精修倒计时（6′ 续修验货 + 2′ 对比图 + 2′ 任务单）</div><div class="timer-display" id="timer-w7r2">10:00</div></div>
+          <div class="action-row"><button class="act-btn primary" onclick="toggleTimer('w7r2',600,this)">开始 10:00</button><button class="act-btn" onclick="resetTimer('w7r2',600)">重置</button></div>
+        </div>
+        <div class="grid-2">
+          <div class="panel">
+            <span class="panel-kicker red">这 10 分钟紧凑做完 3 件小事</span>
+            <ul class="clean-list red">
+              <li><strong>1. 定点续修（6 分钟）：</strong>把同桌真实吐槽填进续修话术，严令 AI 只改这 1 点并打开验无白屏；</li>
+              <li><strong>2. 截前后对比图（2 分钟）：</strong>把第 1 版和正式第 2 版并排各截一张图留证据；</li>
+              <li><strong>3. 补全任务单（2 分钟）：</strong>记下两轮分别变好了哪里，勾上底部确认框。</li>
+            </ul>
+          </div>
+          <div class="panel optical-dark">
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
+              <span class="panel-kicker">《PIGMENT.》真实同桌吐槽 → 定点精修示范</span>
+              <div class="demo-tabs">
+                <button class="demo-tab active" onclick="setW7R2(1,this)">高分定点续修</button>
+                <button class="demo-tab" onclick="setW7R2(2,this)">贪多重写反例</button>
+              </div>
+            </div>
+            <div class="mono-box" id="w7R2Box" style="margin-top:6px;">同桌吐槽：“水彩质感超惊艳！但开局提示条压住底部金球，而且波洛克轨迹线略粗像马克笔！”
+<span class="hl-blue">→ 发给 AI（续修话术）：</span>保留全部水彩扩散与挡板逻辑，只改 2 处细节：
+  1. 把操作提示条挪到画框最底边 28 像素处，首次点击立刻淡出；
+  2. 把钢珠轨迹线从 1.8 像素收细到 1.1 像素针管笔质感
+<span class="hl-ok">→ 结果：</span>15 秒零报错定稿正式第 2 版，同桌试玩直接点赞！</div>
+          </div>
+        </div>
+        <div class="barbell-strip">
+          <div class="barbell-item"><span class="bb-tag fast">快手加餐</span><span>改完还有空？把第 1 版和第 2 版并排截成长图，准备待会儿上大屏 60 秒开秀！</span></div>
+          <div class="barbell-item"><span class="bb-tag help">卡壳救急</span><span>续修改乱了？立刻用备份覆盖回来，把同桌吐槽拆成更短的一句话单独让 AI 改！</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" data-sec="第4段｜晒对比、认名词与收工（30分钟）" data-title="大屏晒对比（15分钟）：60 秒秀变化示范">
+      <div class="slide-head">
+        <div class="slide-meta-row"><span class="slide-meta-num">第 14 页</span><span class="slide-meta-tag">邀请 3–4 位同学投屏晒一晒 · 照下面 3 句模板讲就超精彩</span></div>
+        <h2 class="slide-title">大屏晒变化：看看今天谁的第 1 版 → 第 2 版进化最让人惊喜！</h2>
+      </div>
+      <div class="slide-body">
+        <div class="grid-2-wide">
+          <div class="panel">
+            <span class="panel-kicker blue">上台 60 秒发言“万能 3 句示范”（以《PIGMENT.》为例）</span>
+            <ul class="clean-list blue" style="margin-top:4px;">
+              <li><strong>第 1 句（晒图）：</strong>“左边是我上周死灰框的第 1 版弹珠，右边是今天刚改好的水彩画框第 2 版！”</li>
+              <li><strong>第 2 句（最神挑刺）：</strong>“发截图后 AI 一眼揪出无纸感无晕染，我同桌还补了一条‘提示条挡住金球’的真吐槽。”</li>
+              <li><strong>第 3 句（保命心得）：</strong>“幸好留了备份和 3 条红线，两轮改完一次白屏都没出！”</li>
+            </ul>
+          </div>
+          <div class="photo-card" style="height:260px;">
+            <img src="../../assets/images/w7_pigment_art.jpg" alt="PIGMENT 水彩原作展播示范">
+            <div class="photo-cap"><strong>不论你做的是游戏、短片还是策划：</strong>只要前后变化肉眼可见、说出哪条挑刺最准，全场直接鼓掌！</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" data-sec="第4段｜晒对比、认名词与收工（30分钟）" data-title="最后 5 分钟：今天顺便认识 4 个专业词！">
+      <div class="slide-head">
+        <div class="slide-meta-row"><span class="slide-meta-num">第 15 页 · 最后 5 分钟名词小词典</span><span class="slide-meta-tag">先会做、再认词 · 点击任意卡片翻开揭晓！</span></div>
+        <h2 class="slide-title">揭秘时刻：你今天亲手做过的 4 件事，在 AI 圈原来叫这些“洋气名词”</h2>
+      </div>
+      <div class="slide-body">
+        <div style="display:flex;justify-content:flex-end;"><button class="act-btn primary" onclick="revealAllGloss(this)">一键翻开全部 4 个专业词</button></div>
+        <div class="grid-4">
+          <button class="gloss-card" onclick="toggleGloss(this)">
+            <span class="panel-kicker blue">你今天告别的老习惯</span>
+            <div class="gloss-plain">抠掉退格键，一句话逼 AI 直接交满分卷</div>
+            <div class="gloss-hint">平时最容易改乱的抽卡式用法</div>
+            <div class="gloss-prompt">点击翻开对应专业词 →</div>
+            <div class="gloss-term">Zero-shot Prompting<br><span style="font-family:var(--font-sans);font-size:12.5px;color:var(--color-ink);">（零样本单次提示）</span></div>
+          </button>
+          <button class="gloss-card" onclick="toggleGloss(this)">
+            <span class="panel-kicker blue">你今天学会的新方法</span>
+            <div class="gloss-plain">拆步骤、打草稿、挑毛病、再改二稿的循环</div>
+            <div class="gloss-hint">旧模型能冲到 95.1% 的核心秘诀</div>
+            <div class="gloss-prompt">点击翻开对应专业词 →</div>
+            <div class="gloss-term">Agentic Workflow<br><span style="font-family:var(--font-sans);font-size:12.5px;color:var(--color-ink);">（智能体工作流）</span></div>
+          </button>
+          <button class="gloss-card" onclick="toggleGloss(this)">
+            <span class="panel-kicker blue">你今天练熟的第 2 招</span>
+            <div class="gloss-plain">先让 AI 当冷酷主编挑 3 个刺，再按清单微调</div>
+            <div class="gloss-hint">吴恩达四大模式里最稳的第一招</div>
+            <div class="gloss-prompt">点击翻开对应专业词 →</div>
+            <div class="gloss-term">Reflection（反思模式）<br><span style="font-family:var(--font-sans);font-size:12.5px;color:var(--color-ink);">含 Critic 审稿人角色</span></div>
+          </button>
+          <button class="gloss-card" onclick="toggleGloss(this)">
+            <span class="panel-kicker blue">你今天用过的看图绝活</span>
+            <div class="gloss-plain">截一张真实画面发给 AI，让它睁眼审图挑刺</div>
+            <div class="gloss-hint">不仅能读文字、还能看懂图片的大模型</div>
+            <div class="gloss-prompt">点击翻开对应专业词 →</div>
+            <div class="gloss-term">VLM / Multimodal<br><span style="font-family:var(--font-sans);font-size:12.5px;color:var(--color-ink);">（视觉多模态大模型）</span></div>
+          </button>
+        </div>
+        <div class="callout-strip ok"><strong>是不是瞬间祛魅了？</strong>以后听新闻或大厂面试聊这些英文词，你心里笑一声：“这不就是我大一/大二在课上亲手做过的嘛！”</div>
+      </div>
+    </section>
+
+    <section class="slide" data-sec="第4段｜晒对比、认名词与收工（30分钟）" data-title="轻松打包收工与下周预告">
+      <div class="slide-head">
+        <div class="slide-meta-row"><span class="slide-meta-num">第 16 页</span><span class="slide-meta-tag">周日晚上 9 点前提交 · 下周见</span></div>
+        <h2 class="slide-title">第 1 次课轻松收工：导出两块小报告，下周我们给 AI 装上手脚！</h2>
+      </div>
+      <div class="slide-body">
+        <div class="grid-2">
+          <div class="panel">
+            <span class="panel-kicker red">交卷前 3 项打卡自查 · W7_学号_反思升级第2版.zip</span>
+            <div style="display:flex;flex-direction:column;gap:8px;margin-top:4px;">
+              <button class="pack-check-btn" onclick="togglePackItem(this,'w7PackSt')"><span class="pack-box">✓</span><span>已点任务单右上角导出 <strong>作业报告文件</strong></span></button>
+              <button class="pack-check-btn" onclick="togglePackItem(this,'w7PackSt')"><span class="pack-box">✓</span><span>压缩包里含 <strong>第 1 版备份 + 正式第 2 版 + 前后对比截图</strong></span></button>
+              <button class="pack-check-btn" onclick="togglePackItem(this,'w7PackSt')"><span class="pack-box">✓</span><span>确认周日晚 21:00 前发至 <code>icuc_aigc_workshop@126.com</code></span></button>
+            </div>
+          </div>
+          <div class="panel optical-dark">
+            <span class="panel-kicker">下周（第 2 次课）更过瘾！</span>
+            <h3 style="color:#FFFFFF;">给 AI 装手脚 + 5 行错题体检表</h3>
+            <p>为什么 AI 写诗绝美却连 100 块复利都算错、还会张口编假历史？下周现场抓包 AI 翻车，再用一张《错题体检表》做外科微创手术！</p>
+          </div>
+        </div>
+        <div class="callout-strip" id="w7PackSt"><strong>打包自查进度：0 / 3 项</strong> · 跟着老师一起逐项点击上面清单核对，防止漏文件！</div>
+      </div>
+    </section>
+</main>
+  <footer class="bottom-rail">
+    <span class="foot-meta" id="footSlideTitle"></span>
+    <div class="progress-bar-wrap"><div class="progress-bar-fill" id="progressFill"></div></div>
+    <span class="foot-meta" id="footCounter"></span>
+  </footer>
+</div>
+<div class="drawer-backdrop" id="overviewDrawer">
+  <div class="drawer-box">
+    <div class="drawer-head">
+      <div><strong style="font-size:17px;">W7 第1次课｜学会让AI按退格键 · 目录</strong><span style="margin-left:12px;font-size:12.5px;color:var(--color-ink-muted);">点击任意页直接跳转 · ESC 关闭</span></div>
+      <button class="ctrl-btn" id="btnCloseOverview">关闭</button>
+    </div>
+    <div class="drawer-grid" id="drawerGrid"></div>
+  </div>
+</div>
+<script>
+window.__SYNC_CH__ = "icuc_series_w7";
+
+(function() {
+  const slides = Array.from(document.querySelectorAll('.slide'));
+  const total = slides.length;
+  let current = 0;
+  const railSection = document.getElementById('railSectionLabel');
+  const footTitle = document.getElementById('footSlideTitle');
+  const footCounter = document.getElementById('footCounter');
+  const progressFill = document.getElementById('progressFill');
+  const overviewDrawer = document.getElementById('overviewDrawer');
+  const drawerGrid = document.getElementById('drawerGrid');
+  let syncChannel = null;
+  try {
+    syncChannel = new BroadcastChannel(window.__SYNC_CH__);
+    syncChannel.onmessage = (ev) => {
+      if (ev.data && ev.data.type === 'goto' && typeof ev.data.index === 'number') goTo(ev.data.index, false);
+    };
+  } catch (e) {}
+  slides.forEach((s, i) => {
+    const item = document.createElement('button');
+    item.className = 'drawer-item';
+    const num = String(i + 1).padStart(2, '0');
+    item.innerHTML = `<div class="di-num">第 ${num} 页</div><div class="di-title">${s.dataset.title || ''}</div>`;
+    item.onclick = () => { goTo(i, true); closeOverview(); };
+    drawerGrid.appendChild(item);
+  });
+  function goTo(index, broadcast) {
+    if (index < 0) index = 0;
+    if (index >= total) index = total - 1;
+    slides[current].classList.remove('active');
+    current = index;
+    slides[current].classList.add('active');
+    const num = String(current + 1).padStart(2, '0');
+    railSection.textContent = slides[current].dataset.sec || '';
+    footTitle.textContent = `第 ${num} 页 · ${slides[current].dataset.title || ''}`;
+    footCounter.textContent = `${num} / ${total}`;
+    progressFill.style.width = `${((current + 1) / total) * 100}%`;
+    drawerGrid.querySelectorAll('.drawer-item').forEach((el, idx) => el.classList.toggle('current', idx === current));
+    if (history.replaceState) history.replaceState(null, '', '#p' + num);
+    if (broadcast) {
+      try { if (syncChannel) syncChannel.postMessage({ type: 'slideChanged', index: current }); } catch (e) {}
+      try { if (window.parent && window.parent !== window) window.parent.postMessage({ type: 'seriesSlideChanged', index: current }, '*'); } catch (e) {}
+    }
+  }
+  function openOverview() { overviewDrawer.classList.add('open'); }
+  function closeOverview() { overviewDrawer.classList.remove('open'); }
+  document.getElementById('btnPrev').onclick = () => goTo(current - 1, true);
+  document.getElementById('btnNext').onclick = () => goTo(current + 1, true);
+  document.getElementById('btnOverview').onclick = () => overviewDrawer.classList.contains('open') ? closeOverview() : openOverview();
+  document.getElementById('btnCloseOverview').onclick = closeOverview;
+  document.getElementById('btnFullscreen').onclick = () => {
+    if (!document.fullscreenElement) document.documentElement.requestFullscreen && document.documentElement.requestFullscreen();
+    else document.exitFullscreen && document.exitFullscreen();
+  };
+  overviewDrawer.addEventListener('click', (e) => { if (e.target === overviewDrawer) closeOverview(); });
+  window.addEventListener('keydown', (e) => {
+    if (['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) return;
+    if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') { e.preventDefault(); goTo(current + 1, true); }
+    else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); goTo(current - 1, true); }
+    else if (e.key === 'g' || e.key === 'G') { e.preventDefault(); overviewDrawer.classList.contains('open') ? closeOverview() : openOverview(); }
+    else if (e.key === 'Escape') closeOverview();
+  });
+  window.addEventListener('message', (e) => {
+    if (e.data && e.data.type === 'seriesGoto' && typeof e.data.index === 'number') goTo(e.data.index, false);
+  });
+  const hm = location.hash.match(/^#p(\d+)$/i);
+  goTo(hm ? parseInt(hm[1], 10) - 1 : 0, false);
+
+  const timers = {};
+  function fmtSec(sec) { return `${String(Math.floor(sec / 60)).padStart(2, '0')}:${String(sec % 60).padStart(2, '0')}`; }
+  window.toggleTimer = function(id, defaultSec, btn) {
+    if (!timers[id]) timers[id] = { left: defaultSec, handle: null };
+    const t = timers[id], el = document.getElementById('timer-' + id);
+    if (t.handle) { clearInterval(t.handle); t.handle = null; btn.textContent = '继续计时'; return; }
+    btn.textContent = '暂停计时';
+    t.handle = setInterval(() => {
+      if (t.left > 0) { t.left--; el.textContent = fmtSec(t.left); }
+      else { clearInterval(t.handle); t.handle = null; el.classList.add('done'); el.textContent = '00:00 · 时间到'; btn.textContent = '重新开始'; }
+    }, 1000);
+  };
+  window.resetTimer = function(id, defaultSec) {
+    if (timers[id] && timers[id].handle) clearInterval(timers[id].handle);
+    timers[id] = { left: defaultSec, handle: null };
+    const el = document.getElementById('timer-' + id);
+    el.classList.remove('done'); el.textContent = fmtSec(defaultSec);
+  };
+  window.toggleGloss = function(card) { card.classList.toggle('revealed'); };
+  window.revealAllGloss = function(btn) {
+    const cards = btn.closest('.slide').querySelectorAll('.gloss-card');
+    const allOpen = Array.from(cards).every(c => c.classList.contains('revealed'));
+    cards.forEach(c => c.classList.toggle('revealed', !allOpen));
+    btn.textContent = allOpen ? '一键翻开全部 4 个专业词' : '全部盖回重新考考大家';
+  };
+  window.togglePackItem = function(btn, statusId) {
+    btn.classList.toggle('done');
+    const wrap = btn.parentElement;
+    const all = wrap.querySelectorAll('.pack-check-btn');
+    const doneCnt = wrap.querySelectorAll('.pack-check-btn.done').length;
+    const st = document.getElementById(statusId);
+    if (!st) return;
+    if (doneCnt === all.length) {
+      st.className = 'callout-strip ok';
+      st.innerHTML = '<strong>全部 3 项已自查就绪！</strong>现在可以把压缩包发给老师，轻松下课啦！';
+    } else {
+      st.className = 'callout-strip';
+      st.innerHTML = `<strong>打包自查进度：${doneCnt} / ${all.length} 项</strong> · 逐项点击上面清单核对，防止漏文件！`;
+    }
+  };
+})();
+
+
+const w7Stages = {
+  1: '<strong>第 1 版（灰框原型）：</strong>能打开弹球，但死灰背景、粗糙方砖、没有水彩和纸纹，玩家 3 秒就想关。',
+  2: '<strong>今天第 2 版（看图挑刺蜕变）：</strong>留备份发截图挑 3 个硬伤，换上冷压棉纸、剪纸凹槽与真实水彩扩散！',
+  3: '<strong>下周第 3 版（错题体检微创）：</strong>亲手试玩抓出弯月外沟 22 像素楔死钢珠与挡板台阶绊球，微创修到 28 点压测全通！',
+  4: '<strong>第三周终版（美术馆登台）：</strong>3 人分工包装 4 张现代派展板、暗房展厅与高清画作导出，大屏 2 分钟直接开秀！'
+};
+window.setW7Stage = function(k, btn) {
+  const card = btn.closest('.stage-card');
+  document.querySelectorAll('#w7TrackCards .stage-card').forEach(c => { c.className = 'panel tint stage-card'; c.style.outline = 'none'; });
+  if (card) { card.className = 'panel stage-card'; card.style.outline = '2px solid var(--color-accent)'; }
+  document.getElementById('w7StageNote').innerHTML = w7Stages[k];
+};
+window.setW7Chat = function(st, btn) {
+  btn.parentElement.querySelectorAll('.act-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  const tag = document.getElementById('w7ChatTag'), box = document.getElementById('w7ChatBox'), note = document.getElementById('w7ChatNote');
+  if (st === 1) {
+    tag.textContent = '真实聊天翻车现场';
+    box.innerHTML = '我：帮我把弹珠小游戏改高级一点，顺便加点水彩特效和关卡吧！\nAI：好的！我为您大刀阔斧全部重写了一遍（420 行新代码）\n打开浏览器一看：\n  <span class="hl-red">[惨了]</span> 原来好用的左右挡板按键和发球全失效了\n  <span class="hl-red">[白屏]</span> 点画布毫无反应，整个网页一片空白\n  <span class="hl-amber">[后悔]</span> 旧文件直接被覆盖，连退回都没法退！';
+    note.innerHTML = '<div style="display:flex;flex-direction:column;gap:10px;"><span class="panel-kicker red">真不是你不会用电脑</span><h3>而是踩了三个新手最常犯的坑</h3><ul class="clean-list red"><li><strong>要求太笼统：</strong>“更高级一点”有 100 种改法，AI 只能放飞自我乱重写。</li><li><strong>没划清红线：</strong>没告诉它“哪些好功能绝对不许碰”，它顺手全删了。</li><li><strong>没先找毛病：</strong>连哪里丑、哪里卡都没指出来，就让它推倒重来。</li></ul></div><a class="stage-open-link danger" href="../../assets/pigment/stage2-bad-rewrite.html" target="_blank" style="margin-top:12px;">打开反面示范翻车网页（亲手体验白屏崩坏）↗</a>';
+  } else {
+    tag.textContent = '学完今天两招后的聪明聊天';
+    box.innerHTML = '我：[附上屏幕截图] 请先别改代码！先当冷酷主编挑 3 个具体小毛病。\nAI：1.死灰直角框毫无纸艺质感 2.撞碎砖块无水彩扩散与轨迹线 3.缺底部提示与奖牌反馈。\n我：很好！请在原文件上<span class="hl-ok">只改这 3 处</span>，原有挡板按键与发球物理<span class="hl-amber">绝对不许动</span>！\n打开浏览器一看：\n  <span class="hl-ok">[丝滑]</span> 10 秒一次跑通，水彩晕染惊艳全场，旧功能一个没坏！';
+    note.innerHTML = '<div style="display:flex;flex-direction:column;gap:10px;"><span class="panel-kicker ok">区别全在“问法秩序”</span><h3>三个小动作，彻底告别白屏崩溃</h3><ul class="clean-list ok"><li><strong>先备份再聊：</strong>桌面永远留一份封存的旧版；</li><li><strong>先挑刺后改：</strong>把大愿望锁定成 3 个明确位置的小点；</li><li><strong>末尾贴红线：</strong>严令 AI 保住好功能，绝不全盘推倒！</li></ul></div><a class="stage-open-link blue" href="../../assets/pigment/stage2-watercolor-buggy.html" target="_blank" style="margin-top:12px;">打开高分示范成品（第 2 版真水彩网页）↗</a>';
+  }
+};
+const w7StepMeta = {
+  1: {
+    file: '../../assets/pigment/step1-painpoints.html',
+    btn: '独立全屏打开「第 1 步：定痛点」样板 ↗',
+    lbl: '真机嵌入样板 · 第 1 步：灰框 3 处病灶解剖台',
+    tip: '点下方按钮逐项点亮红标病灶',
+    html: '<span class="panel-kicker blue">第 1 步 · 定痛点（把“太丑了”翻译成具体病灶）</span><ul class="clean-list blue" style="margin-top:4px;"><li><strong>新手空话：</strong>“弹珠初版太廉价了，帮我改得像苹果设计奖作品！”</li><li><strong>高手拆法：</strong>锁定 3 个具体痛点——① 灰白方框毫无纸艺装裱感；② 撞碎色块毫无水彩晕染；③ 漏球直接弹窗失败太挫败；</li><li><strong>验收标准：</strong>写清这 3 处位置，让 AI 看完一眼知道刀该落在哪儿！</li></ul>'
+  },
+  2: {
+    file: '../../assets/pigment/step2-gameplay-feel.html',
+    btn: '独立全屏打开「第 2 步：调手感」样板 ↗',
+    lbl: '真机嵌入样板 · 第 2 步：素白大圆弧 + 零挫败奖牌白模',
+    tip: '暂不上水彩！直接点击左右画布挥拍体验顺滑手感',
+    html: '<span class="panel-kicker blue">第 2 步 · 调手感（锁定核心玩法绝不改坏）</span><ul class="clean-list blue" style="margin-top:4px;"><li><strong>新手空话：</strong>“让弹珠玩起来更爽一点！”</li><li><strong>高手拆法：</strong>先不管花哨颜色！把硬直角墙改成大圆弧顺滑滑道，引入“金球 → 银球 → 铜球 → 墨球”零挫败递降；</li><li><strong>验收标准：</strong>直接在右边白模拍 10 秒，体验发球顺畅且漏球绝不弹窗打断！</li></ul>'
+  },
+  3: {
+    file: '../../assets/pigment/step3-visual-material.html',
+    btn: '独立全屏打开「第 3 步：调画面」样板 ↗',
+    lbl: '真机嵌入样板 · 第 3 步：冷压棉纸 + 真减色水彩扩散',
+    tip: '点「泼青+黄混色」或直接击拍观察真水彩交融',
+    html: '<span class="panel-kicker blue">第 3 步 · 调画面（给具体材质词，拒空洞形容词）</span><ul class="clean-list blue" style="margin-top:4px;"><li><strong>新手空话：</strong>“换成高级一点的美术馆艺术配色！”</li><li><strong>高手拆法：</strong>指定暖象牙冷压棉纸底 + 亚麻卡纸剪纸凹槽投影 + 撞击爆开减色水彩扩散（青+黄自然变翠绿）+ 1.1 像素极细轨迹线；</li><li><strong>验收标准：</strong>不用解释，右侧一眼对比第 2 步白模看出美术馆级质变！</li></ul>'
+  },
+  4: {
+    file: '../../assets/pigment/step4-hands-on-verify.html',
+    btn: '独立全屏打开「第 4 步：亲手试」样板 ↗',
+    lbl: '真机嵌入样板 · 第 4 步：30 秒 4 项动作联动验货台',
+    tip: '点「3 秒演完 4 项验货」或亲手操作逐项亮绿勾！',
+    html: '<span class="panel-kicker blue">第 4 步 · 亲手试（绝不轻信 AI 嘴上说“完美”）</span><ul class="clean-list blue" style="margin-top:4px;"><li><strong>新手空话：</strong>看到 AI 回复“已圆满升级”直接交作业！</li><li><strong>高手拆法：</strong>双击本地文件实测 30 秒——查白屏、查左右挡板、查撞碎色块是否晕染、查重置画布是否彻底清空；</li><li><strong>验收标准：</strong>在右侧真机跑完 4 / 4 绿勾验货，100% 亲手把关！</li></ul>'
+  }
+};
+window.setW7Case = function(k, btn) {
+  btn.parentElement.querySelectorAll('.demo-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const m = w7StepMeta[k];
+  document.getElementById('w7CaseBody').innerHTML = m.html;
+  const link = document.getElementById('w7StepFullLink');
+  if (link) { link.setAttribute('href', m.file); link.textContent = m.btn; }
+  document.getElementById('w7StepFrameLbl').textContent = m.lbl;
+  document.getElementById('w7StepFrameTip').textContent = m.tip;
+  const fr = document.getElementById('w7StepFrame');
+  if (fr) fr.src = m.file + '?embed=1';
+};
+window.setW7Keep = function(st, btn) {
+  btn.parentElement.querySelectorAll('.demo-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const el = document.getElementById('w7KeepList');
+  if (st === 1) {
+    el.innerHTML = '<li><strong>保操控：</strong>左右挡板按键（A / D 与点击画布左右侧）与空格发球必须丝滑好用；</li><li><strong>保结构：</strong>继续零依赖单文件，浏览器双击直接玩，不许引入外部联网素材；</li><li><strong>保范围：</strong>只改挑出的 3 个画面与质感小点，<strong>绝对不许全文重写！</strong></li>';
+  } else {
+    el.innerHTML = '<li><strong>没保操控：</strong>AI 顺手换掉物理循环，按键失灵、点击画布毫无反应；</li><li><strong>没保结构：</strong>偷偷塞进打不开的外部联网脚本，离线双击直接白屏；</li><li><strong>没保范围：</strong>为加特效删掉重来按钮，原来跑得通的原型全报废！</li>';
+  }
+};
+window.setW7Lab1 = function(st, btn) {
+  btn.parentElement.querySelectorAll('.demo-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const el = document.getElementById('w7Lab1Txt');
+  if (st === 1) el.innerHTML = '<strong>《PIGMENT.》高分示范：</strong>“保留原有左右挡板按键和发球规则绝对不许动；只把背景换成暖白冷压棉纸加剪纸卡纸外框投影，撞碎彩砖时沿反弹方向爆出真水彩晕染并留下极细轨迹线。”';
+  else el.innerHTML = '<strong>踩坑反例（千万别这样写）：</strong>“我觉得弹珠初版太土了，你帮我大改一下，弄得像苹果设计奖那么酷炫高端吧！”——结果 AI 直接全文乱重写把好功能全删光！';
+};
+window.setW7R2 = function(st, btn) {
+  btn.parentElement.querySelectorAll('.demo-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const el = document.getElementById('w7R2Box');
+  if (st === 1) {
+    el.innerHTML = '同桌吐槽：“水彩质感超惊艳！但开局提示条压住底部金球，而且波洛克轨迹线略粗像马克笔！”\n<span class="hl-blue">→ 发给 AI（续修话术）：</span>保留全部水彩扩散与挡板逻辑，只改 2 处细节：\n  1. 把操作提示条挪到画框最底边 28 像素处，首次点击立刻淡出；\n  2. 把钢珠轨迹线从 1.8 像素收细到 1.1 像素针管笔质感\n<span class="hl-ok">→ 结果：</span>15 秒零报错定稿正式第 2 版，同桌试玩直接点赞！';
+  } else {
+    el.innerHTML = '反例问法：“同桌说提示条有点挡画面，你顺手把整个界面和玩法再彻底大改升级一遍吧！”\n<span class="hl-red">→ AI 全文重写后果：</span>\n  1. 提示条挪了，但原本调好的水彩扩散着色器顺手删没了；\n  2. 左右挡板点击区域错位，原本能跑的草稿直接白屏！\n<span class="hl-amber">→ 教训：</span>第 2 轮只治同桌指出的 1 点，绝不顺手大拆大改！';
+  }
+};
+window.ansW7Quiz = function(btn, ok, msg) {
+  btn.parentElement.querySelectorAll('.quiz-btn').forEach(b => b.classList.remove('right','wrong'));
+  btn.classList.add(ok ? 'right' : 'wrong');
+  document.getElementById('w7QuizMsg').innerHTML = (ok ? '<span style="color:#15803D;">选对啦！</span>' : '<span style="color:#E11D48;">小心踩坑！</span>') + msg;
+};
+window.setHe = function(st, btn) {
+  btn.parentElement.querySelectorAll('.act-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  const b2 = document.getElementById('heB2'), v2 = document.getElementById('heV2');
+  const b3 = document.getElementById('heB3'), v3 = document.getElementById('heV3'), msg = document.getElementById('heMsg');
+  if (st === 1) { b2.style.width='0%'; v2.textContent='--'; b3.style.width='0%'; v3.textContent='--'; msg.innerHTML='<strong>当前结果：</strong>老版本 AI 直接一笔画，做对不到一半（48.1%）。'; }
+  else if (st === 2) { b2.style.width='67%'; v2.textContent='67.0%'; b3.style.width='0%'; v3.textContent='--'; msg.innerHTML='<strong>花钱换新模型：</strong>换更贵的新版本直接一笔画，涨到 67.0%。'; }
+  else { b2.style.width='67%'; v2.textContent='67.0%'; b3.style.width='95.1%'; v3.textContent='95.1%'; msg.innerHTML='<strong>全场大反转：</strong>还是那个老 AI，一分钱不花升级，只是让它先自查再按退格重改，做对率直接飙到 <strong>95.1%</strong>！'; }
+};
+const w7Auto = {
+  1: {
+    badge:'第 1 档 · 照我的规矩办事（最稳）', bg:'#15803D', btnCls:'stage-open-link ok',
+    ana:'像给实习生发填空表，每一步尺寸、颜色和规矩全由我定死。',
+    fit:'“把顶部 6 块砖精确改成 74×24、间距 8 像素、素灰底，其他一字不许增删！”',
+    risk:'稳如泰山、绝不跑偏，但 AI 也不会主动帮你加水彩或圆弧创意。',
+    file:'../../assets/pigment/tier1-strict-rules.html',
+    btn:'独立全屏打开「第 1 档：照规矩办事」样板 ↗',
+    lbl:'真机嵌入样板 · 第 1 档：像素对齐素框（极稳但 0 惊喜）',
+    tip:'严丝合缝零出错，但完全没有水彩质感'
+  },
+  2: {
+    badge:'第 2 档 · 帮我挑毛病微调（今天主力）', bg:'#0071E3', btnCls:'stage-open-link blue',
+    ana:'我定好方向和底线，请实习生帮我看图挑 3 个毛病再改小细节。',
+    fit:'“保留左右挡板按键和发球不变，看截图只挑 3 个最丑的地方微调。”',
+    risk:'非常稳！只要附带“不许改坏的 3 件事”，又出彩又绝不白屏。',
+    file:'../../assets/pigment/tier2-guided-polish.html',
+    btn:'独立全屏打开「第 2 档：挑刺微调」样板 ↗',
+    lbl:'真机嵌入样板 · 第 2 档：保留操控 + 惊艳真水彩',
+    tip:'又稳又高级！直接点画布试手感'
+  },
+  3: {
+    badge:'第 3 档 · 全撒手自己干（容易乱改飞）', bg:'#E11D48', btnCls:'stage-open-link danger',
+    ana:'只抛一句大愿望让实习生全权拍板，既不设红线也不盯过程。',
+    fit:'“不用问我细节，你全权把弹珠改成你觉得最炸裂的宇宙终极版！”',
+    risk:'脑洞很多，但也最容易把原作品改得面目全非（第 3 次课装上安全带再玩）！',
+    file:'../../assets/pigment/tier3-full-autonomy.html',
+    btn:'独立全屏打开「第 3 档：全撒手放飞」样板 ↗',
+    lbl:'真机嵌入样板 · 第 3 档：AI 擅自反重力 + 5 球 + 抢走挡板！',
+    tip:'点画布试着抢回挡板，或点红按钮看它再放飞！'
+  }
+};
+window.setW7Auto = function(v) {
+  const k = Number(v);
+  const d = w7Auto[k], b = document.getElementById('w7AutoBadge');
+  b.textContent = d.badge; b.style.background = d.bg;
+  const rng = document.getElementById('w7AutoRange');
+  if (rng) rng.value = String(k);
+  document.querySelectorAll('#w7AutoTabs .demo-tab').forEach((btn, idx) => btn.classList.toggle('active', idx + 1 === k));
+  document.getElementById('w7AutoAna').textContent = d.ana;
+  document.getElementById('w7AutoFit').textContent = d.fit;
+  document.getElementById('w7AutoRisk').textContent = d.risk;
+  document.getElementById('w7AutoFrameLbl').textContent = d.lbl;
+  document.getElementById('w7AutoFrameTip').textContent = d.tip;
+  const lk = document.getElementById('w7AutoFullLink');
+  if (lk) { lk.setAttribute('href', d.file); lk.textContent = d.btn; lk.className = d.btnCls; }
+  const fr = document.getElementById('w7AutoFrame');
+  if (fr) fr.src = d.file + '?embed=1';
+};
+/* W7 P10: Single-Case PIGMENT Showcase (Ugly Gray Pinball Prototype -> Critic Redlines -> Live Embedded PIGMENT. Watercolor Pinball) */
+(function() {
+  const cv = document.getElementById('w7GameCanvas');
+  const frame = document.getElementById('w7PigmentFrame');
+  const dullBar = document.getElementById('w7DullBar');
+  if (!cv || !frame) return;
+  const ctx = cv.getContext('2d');
+  const W = 560, H = 392;
+  let mode = 1, pigmentLoaded = false;
+  let leftOn = false, rightOn = false, score = 0;
+  let lAng = 0.42, rAng = Math.PI - 0.42;
+  let ball = { x: 280, y: 292, vx: 115, vy: -390 };
+  let bricks = [];
+
+  function resetDull() {
+    score = 0;
+    ball = { x: 280, y: 286, vx: (Math.random() > 0.5 ? 1 : -1) * (95 + Math.random() * 60), vy: -410 };
+    bricks = [];
+    const cols = ['#B91C1C', '#1D4ED8', '#CA8A04', '#15803D', '#7E22CE', '#C2410C'];
+    for (let i = 0; i < 6; i++) {
+      bricks.push({ x: 132 + i * 50, y: 42, w: 44, h: 18, col: cols[i], alive: true });
+    }
+    bricks.push({ x: 112, y: 120, w: 18, h: 48, col: '#1D4ED8', alive: true });
+    bricks.push({ x: 430, y: 120, w: 18, h: 48, col: '#B91C1C', alive: true });
+  }
+  resetDull();
+
+  cv.addEventListener('pointerdown', (e) => {
+    if (mode !== 1) return;
+    const rect = cv.getBoundingClientRect();
+    const rx = (e.clientX - rect.left) / rect.width;
+    if (rx < 0.5) leftOn = true; else rightOn = true;
+  });
+  const release = () => { leftOn = false; rightOn = false; };
+  cv.addEventListener('pointerup', release);
+  cv.addEventListener('pointerleave', release);
+
+  window.w7DullAct = function(act, val) {
+    if (act === 'left') leftOn = Boolean(val);
+    else if (act === 'right') rightOn = Boolean(val);
+    else if (act === 'launch') resetDull();
+  };
+
+  window.w7JumpPigment = function() {
+    const b3 = document.querySelectorAll("button[onclick*='setW7Vlm']")[2];
+    window.setW7Vlm(3, b3);
+  };
+
+  function stepDull() {
+    if (mode !== 1) return;
+    const dt = 1 / 60;
+    const lTarget = leftOn ? -0.45 : 0.42;
+    const rTarget = rightOn ? Math.PI + 0.45 : Math.PI - 0.42;
+    const lPrev = lAng, rPrev = rAng;
+    lAng += (lTarget - lAng) * 0.38;
+    rAng += (rTarget - rAng) * 0.38;
+
+    ball.vy += 640 * dt;
+    ball.x += ball.vx * dt;
+    ball.y += ball.vy * dt;
+
+    // 简陋直盒墙壁 (x: 108..452, y: 24..376)
+    if (ball.x < 118) { ball.x = 118; ball.vx = Math.abs(ball.vx) * 0.85; }
+    if (ball.x > 442) { ball.x = 442; ball.vx = -Math.abs(ball.vx) * 0.85; }
+    if (ball.y < 34)  { ball.y = 34;  ball.vy = Math.abs(ball.vy) * 0.85; }
+
+    // 简陋斜坡
+    if (ball.y > 286 && ball.x < 210) {
+      const slopeY = 286 + (ball.x - 108) * 0.52;
+      if (ball.y > slopeY) { ball.y = slopeY; ball.vx += 95; ball.vy = -Math.abs(ball.vy) * 0.5; }
+    }
+    if (ball.y > 286 && ball.x > 350) {
+      const slopeY = 286 + (452 - ball.x) * 0.52;
+      if (ball.y > slopeY) { ball.y = slopeY; ball.vx -= 95; ball.vy = -Math.abs(ball.vy) * 0.5; }
+    }
+
+    // 撞砖块（直接干巴巴消失）
+    bricks.forEach(b => {
+      if (!b.alive) return;
+      if (ball.x + 9 > b.x && ball.x - 9 < b.x + b.w && ball.y + 9 > b.y && ball.y - 9 < b.y + b.h) {
+        b.alive = false; score += 10; ball.vy = -ball.vy;
+      }
+    });
+
+    // 两个死板圆障碍
+    [{x:225,y:146,r:18},{x:335,y:146,r:18},{x:280,y:214,r:15}].forEach(c => {
+      const dx = ball.x - c.x, dy = ball.y - c.y, d = Math.hypot(dx, dy);
+      if (d < c.r + 9 && d > 0.1) {
+        ball.x = c.x + dx / d * (c.r + 9); ball.y = c.y + dy / d * (c.r + 9);
+        ball.vx = dx / d * 320; ball.vy = dy / d * 320;
+      }
+    });
+
+    // 粗糙挡板碰撞
+    [[208, 338, lAng, lAng - lPrev, -1], [352, 338, rAng, rAng - rPrev, 1]].forEach(([px, py, ang, dang, side]) => {
+      const tx = px + Math.cos(ang) * 56, ty = py + Math.sin(ang) * 56;
+      const abx = tx - px, aby = ty - py, lenSq = abx * abx + aby * aby;
+      const t = Math.max(0, Math.min(1, ((ball.x - px) * abx + (ball.y - py) * aby) / lenSq));
+      const cx = px + abx * t, cy = py + aby * t;
+      const dx = ball.x - cx, dy = ball.y - cy, d = Math.hypot(dx, dy);
+      if (d < 15 && d > 0.1) {
+        ball.x = cx + dx / d * 15; ball.y = cy + dy / d * 15;
+        const up = (side < 0 && dang < -0.02) || (side > 0 && dang > 0.02);
+        ball.vy = up ? -460 : -Math.abs(ball.vy) * 0.65 - 60;
+        ball.vx += (dx / d) * (up ? 190 : 80);
+      }
+    });
+
+    if (ball.y > H + 12) resetDull();
+  }
+
+  function renderDull() {
+    if (mode !== 3) {
+      stepDull();
+      ctx.save();
+      ctx.setTransform(2, 0, 0, 2, 0, 0);
+      ctx.fillStyle = '#D1D5DB'; ctx.fillRect(0, 0, W, H);
+      // 死灰生硬方框台面
+      ctx.fillStyle = '#E5E7EB'; ctx.fillRect(108, 24, 344, 352);
+      ctx.strokeStyle = '#6B7280'; ctx.lineWidth = 3; ctx.strokeRect(108, 24, 344, 352);
+      ctx.fillStyle = '#4B5563'; ctx.font = '12px serif';
+      ctx.fillText('弹珠初版  得分:' + score + '  (点画布左右侧击拍)', 118, 17);
+
+      // 粗糙底部斜板
+      ctx.strokeStyle = '#4B5563'; ctx.lineWidth = 4;
+      ctx.beginPath(); ctx.moveTo(108, 286); ctx.lineTo(208, 338); ctx.moveTo(452, 286); ctx.lineTo(352, 338); ctx.stroke();
+
+      // 塑料色砖
+      bricks.forEach(b => {
+        if (!b.alive) return;
+        ctx.fillStyle = b.col; ctx.fillRect(b.x, b.y, b.w, b.h);
+        ctx.strokeStyle = '#1F2937'; ctx.lineWidth = 1; ctx.strokeRect(b.x, b.y, b.w, b.h);
+      });
+
+      // 单调死灰弹柱
+      [{x:225,y:146,r:18},{x:335,y:146,r:18},{x:280,y:214,r:15}].forEach(c => {
+        ctx.beginPath(); ctx.arc(c.x, c.y, c.r, 0, Math.PI * 2);
+        ctx.fillStyle = '#9CA3AF'; ctx.fill();
+        ctx.strokeStyle = '#374151'; ctx.lineWidth = 2; ctx.stroke();
+      });
+
+      // 生硬黑条挡板
+      [[208, 338, lAng], [352, 338, rAng]].forEach(([px, py, ang]) => {
+        ctx.strokeStyle = '#111827'; ctx.lineWidth = 10; ctx.lineCap = 'butt';
+        ctx.beginPath(); ctx.moveTo(px, py); ctx.lineTo(px + Math.cos(ang) * 56, py + Math.sin(ang) * 56); ctx.stroke();
+      });
+
+      // 呆板黑圆球
+      ctx.beginPath(); ctx.arc(ball.x, ball.y, 9, 0, Math.PI * 2);
+      ctx.fillStyle = '#111827'; ctx.fill();
+
+      // Mode 2: 建筑红框精准标出 3 个硬伤
+      if (mode === 2) {
+        ctx.fillStyle = 'rgba(15,23,42,0.14)'; ctx.fillRect(0, 0, W, H);
+        ctx.strokeStyle = '#E11D48'; ctx.lineWidth = 2; ctx.setLineDash([5, 3]);
+        ctx.fillStyle = 'rgba(225,29,72,0.12)';
+        ctx.fillRect(102, 20, 356, 56); ctx.strokeRect(102, 20, 356, 56);
+        ctx.setLineDash([]);
+        ctx.fillStyle = '#BE123C'; ctx.font = 'bold 12px -apple-system, sans-serif';
+        ctx.fillText('[毛病1] 死灰直角方框，毫无暖白冷压棉纸与剪纸凹槽感', 112, 92);
+
+        ctx.strokeStyle = '#B45309'; ctx.setLineDash([5, 3]); ctx.fillStyle = 'rgba(245,158,11,0.16)';
+        ctx.fillRect(190, 120, 180, 118); ctx.strokeRect(190, 120, 180, 118);
+        ctx.setLineDash([]);
+        ctx.fillStyle = '#92400E';
+        ctx.fillText('[毛病2] 撞碎方砖干巴巴消失，零水彩扩散与轨迹线', 136, 256);
+
+        ctx.strokeStyle = '#E11D48'; ctx.setLineDash([5, 3]); ctx.fillStyle = 'rgba(225,29,72,0.14)';
+        ctx.fillRect(184, 316, 192, 50); ctx.strokeRect(184, 316, 192, 50);
+        ctx.setLineDash([]);
+        ctx.fillStyle = '#BE123C';
+        ctx.fillText('[毛病3] 挡板生硬且缺金/银/铜球零挫败体验', 152, 382);
+      }
+      ctx.restore();
+    }
+    requestAnimationFrame(renderDull);
+  }
+  requestAnimationFrame(renderDull);
+
+  window.setW7Vlm = function(st, btn) {
+    mode = st;
+    if (btn) { btn.parentElement.querySelectorAll('.act-btn').forEach(b => b.classList.remove('selected')); btn.classList.add('selected'); }
+    const lbl = document.getElementById('w7VlmLbl'), sc = document.getElementById('w7VlmScore'), note = document.getElementById('w7VlmNote');
+    const fullBtn = '<a class="act-btn primary" href="../../assets/pigment/index.html" target="_blank" style="text-align:center;text-decoration:none;margin-top:auto;">独立全屏打开《PIGMENT.》美术馆 ↗</a>';
+    if (st === 1) {
+      cv.style.display = 'block'; frame.style.display = 'none'; dullBar.style.display = 'flex';
+      lbl.textContent = '真机试玩 · 第 1 版灰框弹珠（默认粗糙原型）';
+      sc.textContent = '玩家感受：48分 · 点击画布左右击拍';
+      note.innerHTML = '<div style="display:flex;flex-direction:column;gap:10px;"><span class="panel-kicker red">亲手打两杆你就懂了</span><h3>电脑一行报错没有，但丑到 3 秒想关</h3><p>点击左边画布左右两侧挥拍弹球——死灰铁皮背景、粗糙红蓝方砖、撞碎只干巴巴消失，连一点纸感和水彩晕染都没有！点第 2、3 按钮，看发截图挑刺后的<strong>美术馆级蜕变</strong>！</p></div>' + fullBtn;
+    } else if (st === 2) {
+      cv.style.display = 'block'; frame.style.display = 'none'; dullBar.style.display = 'flex';
+      lbl.textContent = '挑刺主编 · 睁眼圈出 3 处硬伤';
+      sc.textContent = '定格诊断完成';
+      note.innerHTML = '<div style="display:flex;flex-direction:column;gap:10px;"><span class="panel-kicker red">发截图后 AI 一眼揪出 3 个具体刺</span><ul class="clean-list red"><li><strong>毛病 1：</strong>死灰直角方框，缺冷压棉纸纹理、剪纸凹槽与柔光投影；</li><li><strong>毛病 2：</strong>撞碎方砖毫无水彩扩散、减色混色和极细轨迹线；</li><li><strong>毛病 3：</strong>挡板与漏球机制生硬，缺金/银/铜球零挫败体验。</li></ul></div>' + fullBtn;
+    } else {
+      cv.style.display = 'none'; frame.style.display = 'block'; dullBar.style.display = 'none';
+      if (!pigmentLoaded) {
+        frame.src = '../../assets/pigment/index.html?embed=1&auto=1';
+        pigmentLoaded = true;
+      }
+      lbl.textContent = '真机试玩 · 《PIGMENT. 墨迹弹珠》水彩美术馆版！';
+      sc.textContent = '玩家感受：99分 · 直接点击左右画布开打！';
+      note.innerHTML = '<div style="display:flex;flex-direction:column;gap:10px;"><span class="panel-kicker ok">保留弹珠核心规则蜕变出的真实成品</span><ul class="clean-list ok"><li><strong>真水彩流体纸面：</strong>撞碎色砖实时向纸纤维毛细晕染，青+黄自动融出翠绿；</li><li><strong>4 张现代派大师展板：</strong>下方 01–04 随时切换，支持欧普弹柱与光学传送门；</li><li><strong>每一局都是一幅原作：</strong>点「示范」可看 AI 自动作画，随时一键「存画 PNG」！</li></ul></div>' + fullBtn;
+    }
+  };
+})();
+
+</script>
+</body>
+</html>

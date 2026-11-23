@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>第 3 档｜全撒手自己干：AI 放飞乱改失控现场</title>
+<style>
+  * { box-sizing: border-box; user-select: none; }
+  html, body {
+    margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
+    background: #f5f5f7; color: #1d1d1f;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "PingFang SC", "Helvetica Neue", Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .shell {
+    width: 100%; height: 100%;
+    display: grid; grid-template-rows: 54px 1fr 54px;
+    align-items: center; justify-items: center; padding: 0 20px;
+  }
+  body.embed-mode .shell {
+    grid-template-rows: 1fr 42px; padding: 6px 8px 4px; gap: 4px;
+  }
+  .top-bar {
+    width: 100%; max-width: 1060px;
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  }
+  .brand-txt { font-size: 15px; font-weight: 700; color: #be123c; white-space: nowrap; }
+  
+  .tier-nav-bar {
+    display: inline-flex; align-items: center; gap: 4px; padding: 3px;
+    border-radius: 999px; background: rgba(29, 28, 25, 0.08); flex-shrink: 0;
+  }
+  .tier-nav-pill {
+    text-decoration: none; font-size: 11.5px; font-weight: 600;
+    padding: 5px 11px; border-radius: 999px; color: #515154; white-space: nowrap;
+    transition: background-color 150ms ease, color 150ms ease;
+  }
+  .tier-nav-pill:hover { color: #1d1d1f; background: rgba(255,255,255,0.75); }
+  .tier-nav-pill.current { background: #1d1d1f; color: #ffffff; }
+  body.embed-mode .top-bar, body.embed-mode .engine-tag, body.embed-mode .hint-overlay { display: none !important; }
+
+  .stage-wrap {
+    width: 100%; height: 100%; min-height: 0;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .frame {
+    position: relative; aspect-ratio: 3 / 4;
+    height: min(calc(100vh - 130px), 740px);
+    max-width: calc(100vw - 24px);
+    border-radius: 6px; overflow: hidden;
+    background: #0f0720; box-shadow: 0 14px 36px rgba(0,0,0,0.18);
+    cursor: pointer; touch-action: none;
+  }
+  body.embed-mode .frame {
+    height: calc(100vh - 54px); max-width: calc(100vw - 16px);
+    box-shadow: 0 8px 22px rgba(0,0,0,0.16);
+  }
+  .frame canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  .bottom-bar {
+    width: 100%; max-width: 1060px;
+    display: flex; align-items: center; justify-content: center; gap: 6px; flex-wrap: nowrap;
+  }
+  .pill-btn {
+    appearance: none; border: none; border-radius: 999px;
+    background: rgba(29,29,31,0.08); color: #1d1d1f;
+    font-family: inherit; font-size: 12px; font-weight: 600;
+    padding: 6px 12px; cursor: pointer; white-space: nowrap;
+    transition: background-color 140ms ease, color 140ms ease;
+  }
+  body.embed-mode .pill-btn { font-size: 11px; padding: 5px 9px; }
+  .pill-btn:hover { background: rgba(29,29,31,0.16); }
+  .pill-btn.danger { background: #e11d48; color: #ffffff; }
+  .pill-btn.danger:hover { background: #be123c; }
+</style>
+</head>
+<body>
+<div class="shell">
+  <header class="top-bar">
+    <div class="brand-txt">第 3 档｜全撒手放飞：AI 擅自加反重力 + 5 球 + 接管挡板 + 满屏弹窗！</div>
+    <nav class="tier-nav-bar" aria-label="P07 放权三档切换"><a class="tier-nav-pill" href="tier1-strict-rules.html">第 1 档 · 照规矩办</a><a class="tier-nav-pill" href="tier2-guided-polish.html">第 2 档 · 挑刺微调</a><a class="tier-nav-pill current" href="tier3-full-autonomy.html">第 3 档 · 全撒手放飞</a></nav>
+  </header>
+  <main class="stage-wrap">
+    <div class="frame" id="frame">
+      <canvas id="cv" width="600" height="800"></canvas>
+    </div>
+  </main>
+  <footer class="bottom-bar">
+    <button class="pill-btn danger" id="chaosBtn">让 AI 再自由发挥加功能 (+1)</button>
+    <button class="pill-btn" id="fightBtn">试图抢回挡板控制权</button>
+    <button class="pill-btn" id="resetBtn">重置</button>
+  </footer>
+</div>
+<script>
+(() => {
+  'use strict';
+  if (new URLSearchParams(location.search).get('embed') === '1') document.body.classList.add('embed-mode');
+  const cv = document.getElementById('cv');
+  const ctx = cv.getContext('2d');
+  const frame = document.getElementById('frame');
+
+  const W = 600, H = 800;
+  let t = 0, chaosLv = 1, hijackTimer = 0, gravitySign = 1, gravTimer = 0;
+  let balls = [], popups = [];
+
+  const COLORS = ['#00ffff', '#ff00aa', '#ccff00', '#ff6600', '#a855f7'];
+  const SPAM = ['+9999 暴击!!', 'AI 擅自升级 VIP!', 'COMBO ×88!', '已替你删掉棉纸!', '炫酷激光开启!'];
+
+  function spawnBalls(count) {
+    for (let i = 0; i < count; i++) {
+      balls.push({
+        x: 120 + Math.random() * 360,
+        y: 160 + Math.random() * 320,
+        vx: (Math.random() > 0.5 ? 1 : -1) * (240 + Math.random() * 240),
+        vy: (Math.random() > 0.5 ? 1 : -1) * (220 + Math.random() * 260),
+        r: 12 + Math.random() * 7,
+        col: COLORS[Math.floor(Math.random() * COLORS.length)]
+      });
+    }
+  }
+
+  function spawnPopup(txt, x, y) {
+    popups.push({ txt, x: x || (90 + Math.random() * 420), y: y || (140 + Math.random() * 480), life: 1.5, col: COLORS[Math.floor(Math.random() * COLORS.length)] });
+  }
+
+  function resetChaos() {
+    chaosLv = 1;
+    gravitySign = 1;
+    gravTimer = 0;
+    hijackTimer = 0;
+    balls = [];
+    popups = [];
+    spawnBalls(5);
+    spawnPopup('AI 已全权接管并魔改！', 300, 260);
+  }
+
+  function addMoreChaos() {
+    chaosLv = Math.min(5, chaosLv + 1);
+    spawnBalls(2);
+    gravitySign *= -1;
+    spawnPopup(SPAM[Math.floor(Math.random() * SPAM.length)], 300, 200 + Math.random() * 220);
+  }
+
+  function step(dt) {
+    t += dt;
+    gravTimer += dt;
+    if (gravTimer > 2.6) {
+      gravTimer = 0;
+      gravitySign *= -1;
+      spawnPopup(gravitySign < 0 ? 'AI 擅自反转重力 ↑' : 'AI 又切回超重模式 ↓', 300, 155);
+    }
+    if (hijackTimer > 0) hijackTimer = Math.max(0, hijackTimer - dt);
+
+    if (Math.random() < 0.03 * chaosLv && popups.length < 7) {
+      spawnPopup(SPAM[Math.floor(Math.random() * SPAM.length)]);
+    }
+
+    for (const b of balls) {
+      b.vy += 680 * gravitySign * dt;
+      b.x += b.vx * dt;
+      b.y += b.vy * dt;
+      if (b.x < 34 + b.r) { b.x = 34 + b.r; b.vx = Math.abs(b.vx); }
+      if (b.x > W - 34 - b.r) { b.x = W - 34 - b.r; b.vx = -Math.abs(b.vx); }
+      if (b.y < 102 + b.r) { b.y = 102 + b.r; b.vy = Math.abs(b.vy) * 0.96; }
+      if (b.y > H - 90 - b.r) { b.y = H - 90 - b.r; b.vy = -Math.abs(b.vy) * 0.96; }
+    }
+    for (let i = popups.length - 1; i >= 0; i--) {
+      popups[i].y -= 38 * dt;
+      popups[i].life -= dt;
+      if (popups[i].life <= 0) popups.splice(i, 1);
+    }
+  }
+
+  function render() {
+    // Chaotic disco shifting hue background (strictly inside canvas)
+    const hue = (t * 45 * chaosLv) % 360;
+    const bg = ctx.createLinearGradient(0, 0, W, H);
+    bg.addColorStop(0, `hsl(${hue}, 72%, 14%)`);
+    bg.addColorStop(1, `hsl(${(hue + 95) % 360}, 78%, 20%)`);
+    ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
+
+    // Neon border
+    ctx.strokeStyle = `hsl(${(hue + 180) % 360}, 100%, 58%)`;
+    ctx.lineWidth = 6;
+    ctx.strokeRect(26, 94, W - 52, H - 176);
+
+    // Over-the-top AI header banner
+    ctx.fillStyle = '#fef08a';
+    ctx.font = '900 24px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(`⚡ AI 宇宙终极魔改版 Lv.${chaosLv} ⚡`, W / 2, 48);
+    ctx.fillStyle = '#fda4af';
+    ctx.font = '700 13.5px sans-serif';
+    ctx.fillText(gravitySign < 0 ? '警告：AI 擅自开启反重力 + 删掉原水彩风格！' : '警告：AI 擅自塞入多球 + 接管左右挡板！', W / 2, 76);
+
+    // Spinning disco bumpers
+    [[195, 310, 34], [405, 310, 34], [300, 455, 40]].forEach(([bx, by, br], idx) => {
+      ctx.save();
+      ctx.translate(bx, by);
+      ctx.rotate(t * (idx % 2 === 0 ? 4 : -4));
+      for (let k = 0; k < 8; k++) {
+        ctx.fillStyle = k % 2 === 0 ? COLORS[(k + idx) % COLORS.length] : '#111114';
+        ctx.beginPath(); ctx.moveTo(0, 0);
+        ctx.arc(0, 0, br, k * Math.PI / 4, (k + 1) * Math.PI / 4);
+        ctx.closePath(); ctx.fill();
+      }
+      ctx.restore();
+    });
+
+    // Balls
+    for (const b of balls) {
+      ctx.fillStyle = b.col;
+      ctx.beginPath(); ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 2.5; ctx.stroke();
+    }
+
+    // AI hijacked wild flapping flippers (ignore user completely!)
+    const la = Math.sin(t * 11) * 0.7;
+    const ra = Math.PI - Math.cos(t * 13) * 0.7;
+    ctx.strokeStyle = '#00ffff'; ctx.lineWidth = 16; ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(165, 688); ctx.lineTo(165 + Math.cos(la) * 96, 688 + Math.sin(la) * 96);
+    ctx.moveTo(435, 688); ctx.lineTo(435 + Math.cos(ra) * 96, 688 + Math.sin(ra) * 96);
+    ctx.stroke();
+
+    // Floating spam popups
+    for (const p of popups) {
+      ctx.save();
+      ctx.globalAlpha = Math.min(1, p.life);
+      ctx.font = '800 18px sans-serif';
+      const tw = ctx.measureText(p.txt).width + 20;
+      const px = Math.max(36, Math.min(W - tw - 36, p.x - tw / 2));
+      ctx.fillStyle = 'rgba(0,0,0,0.76)';
+      ctx.fillRect(px, p.y - 22, tw, 30);
+      ctx.strokeStyle = p.col; ctx.lineWidth = 2; ctx.strokeRect(px, p.y - 22, tw, 30);
+      ctx.fillStyle = p.col; ctx.textAlign = 'center';
+      ctx.fillText(p.txt, px + tw / 2, p.y - 1);
+      ctx.restore();
+    }
+
+    if (hijackTimer > 0) {
+      ctx.fillStyle = 'rgba(225, 29, 72, 0.94)';
+      ctx.fillRect(36, 560, W - 72, 48);
+      ctx.fillStyle = '#ffffff'; ctx.font = '700 16px sans-serif'; ctx.textAlign = 'center';
+      ctx.fillText('抢不回来！全撒手后 AI 把你的挡板改成了自动乱挥！', W / 2, 590);
+    }
+
+    ctx.fillStyle = '#e4e4e7'; ctx.font = '600 13px -apple-system, "PingFang SC", sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('脑洞很多，但把你原本克制的美术馆作品彻底改飞了！', W / 2, 766);
+  }
+
+  const tryHijack = () => { hijackTimer = 1.6; };
+  frame.addEventListener('pointerdown', tryHijack);
+  document.getElementById('fightBtn').addEventListener('click', tryHijack);
+  document.getElementById('chaosBtn').addEventListener('click', addMoreChaos);
+  document.getElementById('resetBtn').addEventListener('click', resetChaos);
+  window.addEventListener('keydown', (e) => {
+    const k = e.key.toLowerCase();
+    if (k === 'a' || k === 'd' || k === 'arrowleft' || k === 'arrowright') tryHijack();
+  });
+
+  resetChaos();
+  let last = null;
+  function loop(ts) {
+    if (last === null) last = ts;
+    const dt = Math.max(0, Math.min(0.033, (ts - last) / 1000));
+    last = ts;
+    step(dt);
+    render();
+    requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,3065 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>第 2 档｜帮我挑毛病改小细节（今天主力 · 又稳又惊艳）</title>
+<style>
+  :root {
+    --gallery-bg: #ebe8e0;
+    --gallery-bg-deep: #dfdbd0;
+    --ink-dark: #1d1c19;
+    --ink-muted: #6f6a60;
+    --ink-hairline: rgba(29, 28, 25, 0.12);
+    --surface: rgba(255, 253, 248, 0.72);
+    --surface-hover: rgba(255, 253, 248, 0.94);
+    --accent: #c8323c;
+    --frame-shadow: 0 28px 70px rgba(24, 21, 16, 0.16), 0 6px 18px rgba(24, 21, 16, 0.08);
+  }
+
+  body.dark-gallery {
+    --gallery-bg: #161513;
+    --gallery-bg-deep: #0e0d0c;
+    --ink-dark: #f2eee6;
+    --ink-muted: #9a9386;
+    --ink-hairline: rgba(242, 238, 230, 0.14);
+    --surface: rgba(32, 30, 27, 0.78);
+    --surface-hover: rgba(45, 42, 38, 0.96);
+    --frame-shadow: 0 36px 90px rgba(0, 0, 0, 0.58), 0 10px 26px rgba(0, 0, 0, 0.35);
+  }
+
+  * {
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+  }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: radial-gradient(circle at 50% 35%, var(--gallery-bg) 0%, var(--gallery-bg-deep) 100%);
+    color: var(--ink-dark);
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", "PingFang SC", "Noto Sans SC", sans-serif;
+    transition: background 0.6s ease, color 0.4s ease;
+  }
+
+  .app-shell {
+    width: 100%;
+    height: 100%;
+    display: grid;
+    grid-template-rows: 58px 1fr 64px;
+    align-items: center;
+    justify-items: center;
+    padding: 0 24px;
+  }
+
+  /* 顶部画廊极简铭牌栏 */
+  .top-bar {
+    width: 100%;
+    max-width: 980px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    z-index: 10;
+  }
+
+  .brand {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+  }
+
+  .brand-title {
+    font-size: 20px;
+    font-weight: 200;
+    letter-spacing: 0.44em;
+    color: var(--ink-dark);
+    line-height: 1;
+  }
+
+  .brand-sub {
+    font-size: 11px;
+    font-weight: 400;
+    letter-spacing: 0.14em;
+    color: var(--ink-muted);
+    text-transform: uppercase;
+  }
+
+  .hud-strip {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+  }
+
+  .plate-label {
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    color: var(--ink-muted);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .plate-label strong {
+    color: var(--ink-dark);
+    font-weight: 500;
+  }
+
+  .progress-pill {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 11px;
+    border-radius: 999px;
+    background: var(--surface);
+    border: 1px solid var(--ink-hairline);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+    color: var(--ink-dark);
+  }
+
+  .progress-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--accent);
+    transition: transform 0.25s ease, background 0.3s ease;
+  }
+
+  .medal-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 5px 12px 5px 8px;
+    border-radius: 999px;
+    background: var(--surface);
+    border: 1px solid var(--ink-hairline);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    font-size: 11.5px;
+    letter-spacing: 0.05em;
+    color: var(--ink-dark);
+  }
+
+  .medal-orb {
+    width: 13px;
+    height: 13px;
+    border-radius: 50%;
+    box-shadow: inset -2px -2px 4px rgba(0,0,0,0.28), inset 2px 2px 3px rgba(255,255,255,0.7), 0 1px 3px rgba(0,0,0,0.2);
+    transition: background 0.35s ease;
+  }
+
+  .medal-orb.gold { background: radial-gradient(circle at 32% 28%, #fff4b8 0%, #e7bc48 45%, #a87b16 100%); }
+  .medal-orb.silver { background: radial-gradient(circle at 32% 28%, #ffffff 0%, #cfd5dc 48%, #7b838c 100%); }
+  .medal-orb.bronze { background: radial-gradient(circle at 32% 28%, #f8d2b0 0%, #c87b46 50%, #7c3f18 100%); }
+  .medal-orb.ink { background: radial-gradient(circle at 32% 28%, #6e6c67 0%, #262522 55%, #0c0c0b 100%); }
+
+  /* 居中 3:4 竖版装裱舞台 */
+  .stage-wrap {
+    position: relative;
+    height: 100%;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 0;
+  }
+
+  .board-frame {
+    position: relative;
+    aspect-ratio: 3 / 4;
+    height: min(calc(100vh - 144px), 780px);
+    max-width: calc(100vw - 36px);
+    max-height: calc((100vw - 36px) * 4 / 3);
+    border-radius: 6px;
+    overflow: hidden;
+    box-shadow: var(--frame-shadow);
+    background: #dcd5c5;
+    cursor: pointer;
+    touch-action: none;
+    transition: transform 0.2s ease, box-shadow 0.5s ease;
+  }
+
+  .board-frame canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+
+  #inkCanvas {
+    z-index: 1;
+  }
+
+  #overlayCanvas {
+    z-index: 2;
+    pointer-events: none;
+  }
+
+  /* 首次极简操作导引（首次按键或点击后即刻优雅淡出） */
+  .hint-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 4;
+    pointer-events: none;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: center;
+    padding-bottom: 28px;
+    transition: opacity 0.65s ease;
+  }
+
+  .hint-overlay.hidden {
+    opacity: 0;
+  }
+
+  .hint-pill {
+    background: rgba(24, 23, 20, 0.72);
+    color: #f6f2e8;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    padding: 8px 16px;
+    border-radius: 999px;
+    font-size: 11.5px;
+    letter-spacing: 0.06em;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.22);
+  }
+
+  .hint-pill kbd {
+    display: inline-block;
+    padding: 1px 6px;
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.16);
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    font-family: inherit;
+    font-size: 10.5px;
+  }
+
+  /* 过关画廊凝视卡片 */
+  .gallery-modal {
+    position: absolute;
+    inset: 0;
+    z-index: 6;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding: 22px;
+    background: linear-gradient(180deg, rgba(20,19,17,0) 48%, rgba(20,19,17,0.42) 100%);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .gallery-modal.visible {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .gallery-card {
+    width: 100%;
+    max-width: 390px;
+    background: rgba(252, 249, 242, 0.96);
+    color: #1c1b18;
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    border: none;
+    border-radius: 6px;
+    padding: 18px 20px;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.22);
+    transform: translateY(14px);
+    transition: transform 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .gallery-modal.visible .gallery-card {
+    transform: translateY(0);
+  }
+
+  .gallery-card-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+
+  .gallery-kicker {
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: #777064;
+  }
+
+  .gallery-title {
+    margin: 2px 0 0;
+    font-size: 17px;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+  }
+
+  .gallery-stats {
+    font-size: 12px;
+    color: #5e584e;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .gallery-actions {
+    display: flex;
+    gap: 8px;
+  }
+
+  .g-btn {
+    flex: 1;
+    height: 36px;
+    border-radius: 8px;
+    border: 1px solid rgba(28, 27, 24, 0.14);
+    background: rgba(255, 255, 255, 0.85);
+    color: #1c1b18;
+    font-size: 12.5px;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .g-btn:hover {
+    background: #ffffff;
+    transform: translateY(-1px);
+  }
+
+  .g-btn.primary {
+    background: #1c1b18;
+    color: #faf7f0;
+    border-color: #1c1b18;
+  }
+
+  .g-btn.primary:hover {
+    background: #33302b;
+  }
+
+  /* 底部策展控制台 */
+  .bottom-bar {
+    width: 100%;
+    max-width: 980px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    z-index: 10;
+  }
+
+  .plate-nav {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  .plate-btn {
+    height: 32px;
+    padding: 0 12px;
+    border-radius: 999px;
+    border: 1px solid var(--ink-hairline);
+    background: var(--surface);
+    color: var(--ink-muted);
+    font-size: 12px;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    transition: all 0.22s ease;
+  }
+
+  .plate-btn:hover {
+    background: var(--surface-hover);
+    color: var(--ink-dark);
+  }
+
+  .plate-btn.active {
+    background: var(--ink-dark);
+    color: var(--gallery-bg);
+    border-color: var(--ink-dark);
+  }
+
+  .plate-swatch {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    border: 1px solid rgba(128,128,128,0.3);
+  }
+
+  .tool-group {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+  }
+
+  .tool-btn {
+    height: 32px;
+    padding: 0 12px;
+    border-radius: 999px;
+    border: 1px solid var(--ink-hairline);
+    background: var(--surface);
+    color: var(--ink-dark);
+    font-size: 12px;
+    letter-spacing: 0.03em;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    transition: all 0.2s ease;
+  }
+
+  .tool-btn:hover {
+    background: var(--surface-hover);
+    transform: translateY(-1px);
+  }
+
+  .tool-btn.active {
+    background: #1c1b18;
+    color: #faf7f0;
+    border-color: #1c1b18;
+  }
+
+  body.dark-gallery .tool-btn.active {
+    background: #f2eee6;
+    color: #161513;
+    border-color: #f2eee6;
+  }
+
+  .toast {
+    position: fixed;
+    top: 66px;
+    left: 50%;
+    transform: translateX(-50%) translateY(-10px);
+    background: rgba(24, 23, 20, 0.86);
+    color: #f8f5ee;
+    padding: 7px 16px;
+    border-radius: 999px;
+    font-size: 12px;
+    letter-spacing: 0.05em;
+    opacity: 0;
+    pointer-events: none;
+    z-index: 30;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+  }
+
+  .toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  .engine-tag {
+    position: fixed;
+    right: 16px;
+    bottom: 10px;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    color: var(--ink-muted);
+    opacity: 0.6;
+    pointer-events: none;
+  }
+
+  /* 课件嵌入式紧凑画廊模式（?embed=1） */
+  body.embed-mode {
+    background: #F5F5F7;
+  }
+  body.embed-mode .app-shell {
+    grid-template-rows: 1fr 40px;
+    padding: 6px 8px 4px;
+    gap: 4px;
+  }
+  body.embed-mode .top-bar,
+  body.embed-mode .engine-tag,
+  body.embed-mode #themeBtn,
+  body.embed-mode #soundBtn {
+    display: none;
+  }
+  body.embed-mode .board-frame {
+    height: calc(100vh - 54px);
+    max-width: calc(100vw - 16px);
+    max-height: calc((100vw - 16px) * 4 / 3);
+    box-shadow: 0 12px 30px rgba(24, 21, 16, 0.14);
+  }
+  body.embed-mode .bottom-bar {
+    justify-content: center;
+    gap: 5px;
+    flex-wrap: nowrap;
+  }
+  body.embed-mode .plate-btn,
+  body.embed-mode .tool-btn {
+    height: 26px;
+    padding: 0 8px;
+    font-size: 11px;
+    gap: 4px;
+  }
+  body.embed-mode .hint-pill {
+    font-size: 10.5px;
+    padding: 5px 11px;
+    gap: 6px;
+  }
+  body.embed-mode .hint-overlay {
+    padding-bottom: 14px;
+  }
+
+
+  .tier-nav-bar {
+    display: inline-flex; align-items: center; gap: 4px; padding: 3px;
+    border-radius: 999px; background: rgba(29, 28, 25, 0.08); flex-shrink: 0;
+  }
+  .tier-nav-pill {
+    text-decoration: none; font-size: 11.5px; font-weight: 600;
+    padding: 5px 11px; border-radius: 999px; color: #515154; white-space: nowrap;
+    transition: background-color 150ms ease, color 150ms ease;
+  }
+  .tier-nav-pill:hover { color: #1d1d1f; background: rgba(255,255,255,0.75); }
+  .tier-nav-pill.current { background: #1d1d1f; color: #ffffff; }
+  body.embed-mode .top-bar, body.embed-mode .engine-tag, body.embed-mode .hint-overlay { display: none !important; }
+
+  .top-bar, .bottom-bar { max-width: 1060px; }
+  .brand-sub, .engine-tag { display: none; }
+  .brand, .hud-strip { white-space: nowrap; flex-shrink: 0; }
+  @media (max-width: 820px) {
+    .app-shell { padding: 0 12px; grid-template-rows: 52px 1fr 78px; }
+    .brand-sub, .plate-label { display: none; }
+    .bottom-bar { flex-direction: column; gap: 6px; justify-content: center; }
+    .board-frame { height: min(calc(100vh - 146px), 740px); }
+    .engine-tag { display: none; }
+    body.embed-mode .app-shell { padding: 6px 8px 4px; grid-template-rows: 1fr 40px; }
+    body.embed-mode .bottom-bar { flex-direction: row; gap: 4px; }
+    body.embed-mode .board-frame { height: calc(100vh - 54px); }
+  }
+</style>
+</head>
+<body>
+<div class="app-shell">
+  <header class="top-bar">
+    <div class="brand">
+      <div class="brand-title">PIGMENT.</div>
+      <div class="brand-sub">WebGL2 Watercolor Pinball</div>
+    </div>
+    <nav class="tier-nav-bar" aria-label="P07 放权三档切换"><a class="tier-nav-pill" href="tier1-strict-rules.html">第 1 档 · 照规矩办</a><a class="tier-nav-pill current" href="tier2-guided-polish.html">第 2 档 · 挑刺微调</a><a class="tier-nav-pill" href="tier3-full-autonomy.html">第 3 档 · 全撒手放飞</a></nav>
+    <div class="hud-strip">
+      <div class="plate-label" id="plateMeta"><span>Plate 01</span><strong>晨光弧廊</strong></div>
+      <div class="progress-pill" title="已晕染色块 / 总色块">
+        <span class="progress-dot" id="progressDot"></span>
+        <span id="blockCounter">0 / 12</span>
+      </div>
+      <div class="medal-badge" id="medalBadge" title="零挫败奖牌球：金球 → 银球 → 铜球 → 墨球">
+        <span class="medal-orb gold" id="medalOrb"></span>
+        <span id="medalText">金球 · 0 杆</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="stage-wrap">
+    <div class="board-frame" id="boardFrame" aria-label="PIGMENT 水彩弹珠画板">
+      <canvas id="inkCanvas"></canvas>
+      <canvas id="overlayCanvas"></canvas>
+
+      <div class="hint-overlay" id="hintOverlay">
+        <div class="hint-pill">
+          <span><kbd>A</kbd> / <kbd>←</kbd> 左挡板</span>
+          <span><kbd>D</kbd> / <kbd>→</kbd> 右挡板</span>
+          <span><kbd>Space</kbd> 发球 · 或直接点击左右画布</span>
+        </div>
+      </div>
+
+      <div class="gallery-modal" id="galleryModal">
+        <div class="gallery-card">
+          <div class="gallery-card-head">
+            <div>
+              <div class="gallery-kicker" id="modalKicker">CANVAS COMPLETE</div>
+              <h2 class="gallery-title" id="modalTitle">Plate 01 · 晨光弧廊</h2>
+            </div>
+            <div class="medal-badge" style="background:rgba(255,255,255,0.7);">
+              <span class="medal-orb gold" id="modalOrb"></span>
+              <span id="modalRank">星标金球</span>
+            </div>
+          </div>
+          <div class="gallery-stats" id="modalStats">12/12 色块晕染 · 6 次击打 · 独一无二的水彩原作</div>
+          <div class="gallery-actions">
+            <button class="g-btn primary" id="modalReplayBtn">再玩一局</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="bottom-bar">
+    <nav class="plate-nav" id="plateNav" aria-label="第 2 档单展板"></nav>
+    <div class="tool-group">
+      <button class="tool-btn active" id="autoBtn" title="开启或关闭自动示范">自动试玩</button>
+      <button class="tool-btn" id="splashBtn" title="补泼一抹青黄混色水彩">泼水彩</button>
+      <button class="tool-btn" id="resetBtn" title="清空画布">重置</button>
+    </div>
+  </footer>
+</div>
+
+<div class="toast" id="toast"></div>
+<div class="engine-tag" id="engineTag">WebGL2 Ping-Pong</div>
+
+<script>
+(() => {
+  'use strict';
+
+  // =========================================================================
+  // 1. 常量与策展色彩系统（严格 3:4 逻辑坐标系：600 × 800）
+  // =========================================================================
+  const WORLD_W = 600;
+  const WORLD_H = 800;
+  const SIM_W = 768;
+  const SIM_H = 1024;
+  const BALL_R = 11.2;
+  const SUBSTEPS = 10;
+  const FIXED_DT = 1 / 60;
+
+  // 高级水彩颜料色板（减色混色吸收光谱精准调优）
+  const PALETTE = {
+    vermilion:  { hex: '#DC243B', rgb: [0.86, 0.14, 0.23], name: '朱红' },
+    crimson:    { hex: '#C6185B', rgb: [0.78, 0.09, 0.36], name: '洋红' },
+    tangerine:  { hex: '#F06A1A', rgb: [0.94, 0.42, 0.10], name: '镉橙' },
+    ochre:      { hex: '#F4BE12', rgb: [0.96, 0.75, 0.07], name: '藤黄' },
+    viridian:   { hex: '#00A676', rgb: [0.00, 0.65, 0.46], name: '翠绿' },
+    cerulean:   { hex: '#0087CA', rgb: [0.00, 0.53, 0.79], name: '天青' },
+    cobalt:     { hex: '#2346B8', rgb: [0.14, 0.27, 0.72], name: '群青' },
+    violet:     { hex: '#6D2898', rgb: [0.43, 0.16, 0.60], name: '绛紫' },
+    teal:       { hex: '#087E8B', rgb: [0.03, 0.49, 0.55], name: '石青' },
+    coral:      { hex: '#EF475D', rgb: [0.94, 0.28, 0.36], name: '珊瑚' }
+  };
+
+  // =========================================================================
+  // 2. 几何辅助工具（同一份数学曲线同时驱动物理壁面与 WebGL 剪纸遮罩）
+  // =========================================================================
+  function sampleArc(cx, cy, r, a0, a1, steps) {
+    const pts = [];
+    for (let i = 0; i <= steps; i++) {
+      const t = i / steps;
+      const a = a0 + (a1 - a0) * t;
+      pts.push([cx + Math.cos(a) * r, cy + Math.sin(a) * r]);
+    }
+    return pts;
+  }
+
+  function sampleQuad(p0, p1, p2, steps) {
+    const pts = [];
+    for (let i = 0; i <= steps; i++) {
+      const t = i / steps;
+      const u = 1 - t;
+      pts.push([
+        u * u * p0[0] + 2 * u * t * p1[0] + t * t * p2[0],
+        u * u * p0[1] + 2 * u * t * p1[1] + t * t * p2[1]
+      ]);
+    }
+    return pts;
+  }
+
+  function sampleCubic(p0, p1, p2, p3, steps) {
+    const pts = [];
+    for (let i = 0; i <= steps; i++) {
+      const t = i / steps;
+      const u = 1 - t;
+      pts.push([
+        u*u*u*p0[0] + 3*u*u*t*p1[0] + 3*u*t*t*p2[0] + t*t*t*p3[0],
+        u*u*u*p0[1] + 3*u*u*t*p1[1] + 3*u*t*t*p2[1] + t*t*t*p3[1]
+      ]);
+    }
+    return pts;
+  }
+
+  function mergePath(parts) {
+    const out = [];
+    for (const part of parts) {
+      for (const p of part) {
+        if (out.length === 0 || Math.hypot(out[out.length - 1][0] - p[0], out[out.length - 1][1] - p[1]) > 0.8) {
+          out.push(p);
+        }
+      }
+    }
+    return out;
+  }
+
+  // 统一标准底部漏斗曲线参数（4 张展板共享）
+  // 核心弹珠工程不变量：外框斜坡严格与挡板静止状态【上表面】0.00px 共线齐平，
+  // 挡板转轴半嵌入外框切点下方，彻底消除台阶绊球与挡板背侧夹球死角！
+  const FUNNEL = (() => {
+    const slopeAngle = 0.46;   // 26.36° 黄金弹珠斜坡角
+    const arcR = 112;
+    const leftWallX = 76;
+    const pivotX = 190;
+    const pivotY = 710;
+    const flipperLen = 88;
+    const rStart = 9.5;
+    const rEnd = 6.0;
+    const drainHalfW = 37;     // 底部漏球口宽 74px（x: 263 ~ 337）
+
+    // 左挡板静止上表面在转轴处的精确上切点
+    const topLX = pivotX + Math.sin(slopeAngle) * rStart;
+    const topLY = pivotY - Math.cos(slopeAngle) * rStart;
+    const cxL = leftWallX + arcR; // 188
+    const aCutL = Math.PI * 0.5 + slopeAngle;
+    const lTanX = cxL + Math.cos(aCutL) * arcR;
+    // 反推唯一 arcY，使大圆弧切点严格落在挡板上表面延长线上（0.00px 误差）
+    const lTanY = topLY - (topLX - lTanX) * Math.tan(slopeAngle);
+    const arcY = lTanY - Math.sin(aCutL) * arcR;
+
+    return { slopeAngle, arcR, arcY, leftWallX, pivotX, pivotY, flipperLen, rStart, rEnd, drainHalfW, topLX, topLY };
+  })();
+
+  function makeStandardBottomOuter(leftJoinX = 76, rightJoinX = 524) {
+    const aSlope = FUNNEL.slopeAngle;
+    const r = FUNNEL.arcR;
+    const cy = FUNNEL.arcY;
+    const cxL = FUNNEL.leftWallX + r;           // 188
+    const cxR = WORLD_W - FUNNEL.leftWallX - r; // 412
+    const aCutL = Math.PI * 0.5 + aSlope;
+    const aCutR = Math.PI * 0.5 - aSlope;
+    const tanS = Math.tan(aSlope);
+
+    // 挡板上表面切点（斜坡平滑延伸至此，与静止挡板顶面 100% 齐平）
+    const topLX = FUNNEL.topLX;
+    const topLY = FUNNEL.topLY;
+    const topRX = WORLD_W - topLX;
+    const topRY = topLY;
+
+    // 挡板下槽斜底（藏在挡板转轴正下方，留出干净漏球通道）
+    const underDrop = FUNNEL.rStart * 2.05 / Math.cos(aSlope);
+    const drainR = WORLD_W * 0.5 + FUNNEL.drainHalfW;
+    const drainL = WORLD_W * 0.5 - FUNNEL.drainHalfW;
+    const drainY = topRY + (topRX - drainR) * tanS + underDrop * 0.85;
+
+    const rTanX = cxR + Math.cos(aCutR) * r;
+    const rTanY = cy  + Math.sin(aCutR) * r;
+    const lTanX = cxL + Math.cos(aCutL) * r;
+    const lTanY = cy  + Math.sin(aCutL) * r;
+
+    // 右转轴包络下缘点 & 左转轴包络下缘点
+    const pivRX = WORLD_W - FUNNEL.pivotX, pivRY = FUNNEL.pivotY;
+    const pivLX = FUNNEL.pivotX,           pivLY = FUNNEL.pivotY;
+    const pivBotRX = pivRX - Math.sin(aSlope) * (FUNNEL.rStart + 2);
+    const pivBotRY = pivRY + Math.cos(aSlope) * (FUNNEL.rStart + 2);
+    const pivBotLX = pivLX + Math.sin(aSlope) * (FUNNEL.rStart + 2);
+    const pivBotLY = pivLY + Math.cos(aSlope) * (FUNNEL.rStart + 2);
+
+    const parts = [];
+    if (Math.abs(rightJoinX - (WORLD_W - FUNNEL.leftWallX)) > 1) {
+      parts.push(sampleCubic([rightJoinX, 514], [rightJoinX, 546], [WORLD_W - FUNNEL.leftWallX, 546], [WORLD_W - FUNNEL.leftWallX, cy], 12));
+    } else {
+      parts.push([[WORLD_W - FUNNEL.leftWallX, cy]]);
+    }
+    parts.push(sampleArc(cxR, cy, r, 0, aCutR, 20));
+    parts.push([
+      [rTanX, rTanY],
+      [topRX, topRY],
+      [pivBotRX, pivBotRY],
+      [drainR, drainY],
+      [drainR, 835],
+      [drainL, 835],
+      [drainL, drainY],
+      [pivBotLX, pivBotLY],
+      [topLX, topLY],
+      [lTanX, lTanY]
+    ]);
+    parts.push(sampleArc(cxL, cy, r, aCutL, Math.PI, 20));
+    if (Math.abs(leftJoinX - FUNNEL.leftWallX) > 1) {
+      parts.push(sampleCubic([FUNNEL.leftWallX, cy], [FUNNEL.leftWallX, 546], [leftJoinX, 546], [leftJoinX, 514], 12));
+    }
+    return mergePath(parts);
+  }
+
+  function makeStandardFlippers() {
+    return [
+      { pivot: [FUNNEL.pivotX, FUNNEL.pivotY], len: FUNNEL.flipperLen, restAngle: FUNNEL.slopeAngle, activeAngle: -0.52, side: -1 },
+      { pivot: [WORLD_W - FUNNEL.pivotX, FUNNEL.pivotY], len: FUNNEL.flipperLen, restAngle: Math.PI - FUNNEL.slopeAngle, activeAngle: Math.PI + 0.52, side: 1 }
+    ];
+  }
+
+  // 标志性的剪纸光滑弯月导流护翼：与外框大圆弧同心，全程保留 39px（1.74× 球径）宽敞等宽回流滑道，绝对零卡球！
+  function makeTeardropIsland(side) {
+    const mirror = (x, y) => side < 0 ? [x, y] : [WORLD_W - x, y];
+    const cx = FUNNEL.leftWallX + FUNNEL.arcR; // 188
+    const cy = FUNNEL.arcY;
+    const rMid = 66;                           // 外缘最大 73px，与外墙 112px 恒留 39px 宽畅通道
+    const halfT = 7.0;
+    const aStart = 2.94;
+    const aEnd   = 2.08;
+    const steps = 20;
+    const outerSide = [];
+    const innerSide = [];
+    for (let i = 0; i <= steps; i++) {
+      const t = i / steps;
+      const a = aStart + (aEnd - aStart) * t;
+      outerSide.push(mirror(cx + Math.cos(a) * (rMid + halfT), cy + Math.sin(a) * (rMid + halfT)));
+      innerSide.push(mirror(cx + Math.cos(a) * (rMid - halfT), cy + Math.sin(a) * (rMid - halfT)));
+    }
+    const topCx = cx + Math.cos(aStart) * rMid, topCy = cy + Math.sin(aStart) * rMid;
+    const botCx = cx + Math.cos(aEnd)   * rMid, botCy = cy + Math.sin(aEnd)   * rMid;
+    const capTop = sampleArc(topCx, topCy, halfT, aStart + Math.PI, aStart, 10).map((p) => mirror(p[0], p[1]));
+    const capBot = sampleArc(botCx, botCy, halfT, aEnd, aEnd - Math.PI, 10).map((p) => mirror(p[0], p[1]));
+    innerSide.reverse();
+    return mergePath([outerSide, capBot, innerSide, capTop]);
+  }
+
+  // 生成沿圆弧紧密嵌装的分段彩砖（Ink Blocks）
+  function makeArcBlocks(cx, cy, rOuter, thickness, aStart, aEnd, colorKeys) {
+    const n = colorKeys.length;
+    const pad = 0.012;
+    const totalSpan = aEnd - aStart;
+    const step = totalSpan / n;
+    const blocks = [];
+    for (let i = 0; i < n; i++) {
+      const a0 = aStart + i * step + pad;
+      const a1 = aStart + (i + 1) * step - pad;
+      const rIn = rOuter - thickness;
+      const outerPts = sampleArc(cx, cy, rOuter, a0, a1, 10);
+      const innerPts = sampleArc(cx, cy, rIn, a1, a0, 10);
+      const poly = outerPts.concat(innerPts);
+      const aMid = (a0 + a1) * 0.5;
+      blocks.push({
+        type: 'arc',
+        cx, cy, rOuter, rIn, a0, a1, aMid,
+        poly,
+        center: [cx + Math.cos(aMid) * (rOuter - thickness * 0.5), cy + Math.sin(aMid) * (rOuter - thickness * 0.5)],
+        normal: [-Math.cos(aMid), -Math.sin(aMid)], // 朝向圆心内场
+        color: PALETTE[colorKeys[i]],
+        alive: true,
+        hitAnim: 0
+      });
+    }
+    return blocks;
+  }
+
+  // 生成沿直线贴壁嵌装的分段彩砖
+  function makeLinearBlocks(x0, y0, x1, y1, thickness, inwardSign, colorKeys) {
+    const n = colorKeys.length;
+    const dx = x1 - x0;
+    const dy = y1 - y0;
+    const len = Math.hypot(dx, dy);
+    const ux = dx / len;
+    const uy = dy / len;
+    // 垂直向内场法线
+    const nx = -uy * inwardSign;
+    const ny = ux * inwardSign;
+    const gap = 3.2;
+    const segLen = (len - gap * (n - 1)) / n;
+    const blocks = [];
+    for (let i = 0; i < n; i++) {
+      const s0 = i * (segLen + gap);
+      const s1 = s0 + segLen;
+      const p0 = [x0 + ux * s0, y0 + uy * s0];
+      const p1 = [x0 + ux * s1, y0 + uy * s1];
+      const p2 = [p1[0] + nx * thickness, p1[1] + ny * thickness];
+      const p3 = [p0[0] + nx * thickness, p0[1] + ny * thickness];
+      blocks.push({
+        type: 'rect',
+        poly: [p0, p1, p2, p3],
+        center: [(p0[0] + p2[0]) * 0.5, (p0[1] + p2[1]) * 0.5],
+        normal: [nx, ny],
+        color: PALETTE[colorKeys[i]],
+        alive: true,
+        hitAnim: 0
+      });
+    }
+    return blocks;
+  }
+
+  // =========================================================================
+  // 3. 四张策展级原创现代派展板（100% 原创几何，致敬不同艺术流派）
+  // =========================================================================
+  function buildPlates() {
+    // --- Plate 01: 晨光弧廊（马蒂斯大圆弧，清爽入门，一杆连爆极爽） ---
+    const p1Outer = mergePath([
+      sampleArc(300, 260, 224, Math.PI, 2 * Math.PI, 48),       // 顶部大穹顶
+      [[524, 260], [524, FUNNEL.arcY]],                         // 右直壁
+      makeStandardBottomOuter(76, 524),
+      [[76, FUNNEL.arcY], [76, 260]]
+    ]);
+
+    const plate1 = {
+      id: 'plate-1',
+      code: '01',
+      title: '晨光弧廊',
+      subtitle: 'MATISSE ARC',
+      parHits: 7,
+      paperRGB: [0.955, 0.930, 0.865],
+      matTopRGB: [0.74, 0.70, 0.62],
+      matBotRGB: [0.64, 0.60, 0.53],
+      swatch: '#b8ae9a',
+      flipperColor: '#252834',
+      accentHex: '#DC243B',
+      outer: p1Outer,
+      islands: [makeTeardropIsland(-1), makeTeardropIsland(1)],
+      flippers: makeStandardFlippers(),
+      bumpers: [
+        { x: 300, y: 236, r: 30, style: 'ring', color: '#1F3B4D', bounce: 1.18 },
+        { x: 204, y: 344, r: 22, style: 'op-ring', color: '#262421', bounce: 1.16 },
+        { x: 396, y: 344, r: 22, style: 'op-ring', color: '#262421', bounce: 1.16 },
+        { x: 300, y: 468, r: 25, style: 'solid-ink', color: '#183C3E', bounce: 1.14 }
+      ],
+      portals: [],
+      launchPos: [300, 608],
+      makeBlocks: () => [
+        ...makeArcBlocks(300, 260, 224, 24, Math.PI * 1.10, Math.PI * 1.90, [
+          'cobalt', 'cerulean', 'viridian', 'ochre', 'tangerine', 'vermilion', 'crimson', 'violet'
+        ]),
+        ...makeLinearBlocks(76, 360, 76, 512, 20, -1, ['cerulean', 'viridian', 'ochre']),
+        ...makeLinearBlocks(524, 360, 524, 512, 20, 1, ['vermilion', 'tangerine', 'crimson'])
+      ]
+    };
+
+    // --- Plate 02: 欧普双旋（Bridget Riley 欧普艺术大弹柱 + 解析两圆精确上交点，零毛刺） ---
+    const c2L = { x: 212, y: 228, r: 146 };
+    const c2R = { x: 416, y: 300, r: 116 };
+    const d2 = Math.hypot(c2R.x - c2L.x, c2R.y - c2L.y);
+    const a2 = (c2L.r * c2L.r - c2R.r * c2R.r + d2 * d2) / (2 * d2);
+    const h2 = Math.sqrt(Math.max(0, c2L.r * c2L.r - a2 * a2));
+    const ux2 = (c2R.x - c2L.x) / d2, uy2 = (c2R.y - c2L.y) / d2;
+    // 取上交点（y 较小者）
+    const p2Ix = c2L.x + a2 * ux2 + h2 * uy2;
+    const p2Iy = c2L.y + a2 * uy2 - h2 * ux2;
+    const p2LeftEnd = Math.atan2(p2Iy - c2L.y, p2Ix - c2L.x) + Math.PI * 2;
+    const p2RightStart = Math.atan2(p2Iy - c2R.y, p2Ix - c2R.x);
+    const p2Outer = mergePath([
+      sampleArc(c2L.x, c2L.y, c2L.r, Math.PI, p2LeftEnd, 36),   // 左高圆穹直达精准交点
+      sampleArc(c2R.x, c2R.y, c2R.r, p2RightStart, 0.22, 30),   // 右低圆穹从精准交点无缝续接
+      sampleCubic([c2R.x + Math.cos(0.22) * c2R.r, c2R.y + Math.sin(0.22) * c2R.r], [528, 430], [524, 510], [524, FUNNEL.arcY], 16),
+      makeStandardBottomOuter(76, 524),
+      sampleCubic([76, FUNNEL.arcY], [76, 480], [66, 360], [66, 228], 16)
+    ]);
+
+    const plate2 = {
+      id: 'plate-2',
+      code: '02',
+      title: '欧普双旋',
+      subtitle: 'RILEY VORTEX',
+      parHits: 8,
+      paperRGB: [0.950, 0.938, 0.880],
+      matTopRGB: [0.64, 0.71, 0.67],
+      matBotRGB: [0.54, 0.62, 0.58],
+      swatch: '#9fb0a5',
+      flipperColor: '#48283B',
+      accentHex: '#C6185B',
+      outer: p2Outer,
+      islands: [makeTeardropIsland(-1), makeTeardropIsland(1)],
+      flippers: makeStandardFlippers(),
+      bumpers: [
+        { x: 212, y: 234, r: 46, style: 'op-rays', color: '#1F1D1A', bounce: 1.24 },
+        { x: 416, y: 300, r: 36, style: 'op-spiral', color: '#1F1D1A', bounce: 1.24 },
+        { x: 218, y: 438, r: 24, style: 'op-ring', color: '#1F1D1A', bounce: 1.18 },
+        { x: 356, y: 486, r: 20, style: 'solid-ink', color: '#1B4954', bounce: 1.15 }
+      ],
+      portals: [],
+      launchPos: [300, 608],
+      makeBlocks: () => [
+        ...makeArcBlocks(c2L.x, c2L.y, c2L.r, 23, Math.PI * 1.05, p2LeftEnd - 0.08, [
+          'crimson', 'vermilion', 'tangerine', 'ochre', 'viridian', 'cerulean'
+        ]),
+        ...makeArcBlocks(c2R.x, c2R.y, c2R.r, 22, p2RightStart + 0.08, 0.14, [
+          'violet', 'cobalt', 'cerulean', 'viridian', 'ochre'
+        ]),
+        ...makeLinearBlocks(70, 345, 74, 488, 19, -1, ['tangerine', 'coral', 'crimson'])
+      ]
+    };
+
+    // --- Plate 03: 暗夜剧场（哑光炭黑卡纸 + 暖奶油内纸 + 高对比对称美学） ---
+    const p3Outer = mergePath([
+      sampleArc(300, 148, 88, Math.PI * 0.94, Math.PI * 2.06, 28), // 顶部圆厅
+      sampleCubic([386, 164], [408, 224], [486, 220], [516, 286], 18), // 右肩滑道
+      [[516, 286], [516, 516]],
+      makeStandardBottomOuter(84, 516),
+      [[84, 516], [84, 286]],
+      sampleCubic([84, 286], [114, 220], [192, 224], [214, 164], 18) // 左肩滑道
+    ]);
+
+    const plate3 = {
+      id: 'plate-3',
+      code: '03',
+      title: '暗夜剧场',
+      subtitle: 'NOCTURNE',
+      parHits: 8,
+      paperRGB: [0.955, 0.900, 0.770],
+      matTopRGB: [0.125, 0.118, 0.108],
+      matBotRGB: [0.075, 0.070, 0.064],
+      swatch: '#1c1a17',
+      flipperColor: '#E5641E',
+      accentHex: '#F06A1A',
+      outer: p3Outer,
+      islands: [
+        makeTeardropIsland(-1),
+        makeTeardropIsland(1),
+        // 中部极简小圆墩岛
+        sampleArc(192, 344, 18, 0, Math.PI * 2, 22),
+        sampleArc(408, 344, 18, 0, Math.PI * 2, 22)
+      ],
+      flippers: makeStandardFlippers(),
+      bumpers: [
+        { x: 300, y: 318, r: 34, style: 'bulls-eye', color: '#D11F5B', bounce: 1.24 },
+        { x: 300, y: 148, r: 22, style: 'op-rays', color: '#1F1D1A', bounce: 1.18 },
+        { x: 244, y: 452, r: 17, style: 'solid-ink', color: '#E89B25', bounce: 1.16 },
+        { x: 356, y: 452, r: 17, style: 'solid-ink', color: '#0087CA', bounce: 1.16 }
+      ],
+      portals: [],
+      launchPos: [300, 608],
+      makeBlocks: () => [
+        ...makeArcBlocks(300, 148, 88, 20, Math.PI * 1.12, Math.PI * 1.88, [
+          'vermilion', 'ochre', 'viridian', 'cerulean'
+        ]),
+        ...makeLinearBlocks(84, 304, 84, 504, 21, -1, ['crimson', 'vermilion', 'tangerine', 'ochre', 'viridian']),
+        ...makeLinearBlocks(516, 304, 516, 504, 21, 1, ['violet', 'cobalt', 'cerulean', 'teal', 'ochre'])
+      ]
+    };
+
+    // --- Plate 04: 镜隙双庭（传送门折光美学 + 暖沙金卡纸，双拱精确对称交汇于 x=300） ---
+    // 左圆 (188,226,r=118) 与 x=300 精确交角: cos(a) = (300-188)/118 = 112/118
+    const p4Meet = Math.acos(112 / 118); // ≈ 0.3204 rad
+    const p4Outer = mergePath([
+      sampleArc(188, 226, 118, Math.PI, Math.PI * 2 - p4Meet, 30), // 左拱庭精确落于 (300, 188.9)
+      sampleArc(412, 226, 118, Math.PI + p4Meet, Math.PI * 2.0, 30), // 右拱庭从 (300, 188.9) 无缝起笔
+      sampleCubic([530, 226], [530, 390], [524, 490], [524, FUNNEL.arcY], 14),
+      makeStandardBottomOuter(76, 524),
+      sampleCubic([76, FUNNEL.arcY], [76, 490], [70, 390], [70, 226], 14)
+    ]);
+
+    // 中央优雅细柱隔断（形成左右双腔，靠传送门穿梭！）
+    const centerPillar = mergePath([
+      sampleArc(300, 272, 16, Math.PI, Math.PI * 2, 14),
+      [[316, 272], [316, 408]],
+      sampleArc(300, 408, 16, 0, Math.PI, 14),
+      [[284, 408], [284, 272]]
+    ]);
+
+    const plate4 = {
+      id: 'plate-4',
+      code: '04',
+      title: '镜隙双庭',
+      subtitle: 'PRISM PORTAL',
+      parHits: 9,
+      paperRGB: [0.960, 0.935, 0.870],
+      matTopRGB: [0.77, 0.69, 0.54],
+      matBotRGB: [0.66, 0.57, 0.42],
+      swatch: '#c3af86',
+      flipperColor: '#372E25',
+      accentHex: '#0087CA',
+      outer: p4Outer,
+      islands: [makeTeardropIsland(-1), makeTeardropIsland(1), centerPillar],
+      flippers: makeStandardFlippers(),
+      bumpers: [
+        { x: 186, y: 274, r: 26, style: 'op-ring', color: '#1F2B38', bounce: 1.20 },
+        { x: 414, y: 274, r: 26, style: 'op-spiral', color: '#2B221B', bounce: 1.20 },
+        { x: 300, y: 504, r: 22, style: 'ring', color: '#087E8B', bounce: 1.18 }
+      ],
+      portals: [
+        { x: 158, y: 406, r: 21, targetIndex: 1, color: '#0087CA', pigment: PALETTE.cerulean, exitDir: [0.45, -0.89] },
+        { x: 442, y: 406, r: 21, targetIndex: 0, color: '#F06A1A', pigment: PALETTE.tangerine, exitDir: [-0.45, -0.89] }
+      ],
+      launchPos: [300, 608],
+      makeBlocks: () => [
+        ...makeArcBlocks(188, 226, 118, 22, Math.PI * 1.06, Math.PI * 1.88, [
+          'cobalt', 'cerulean', 'teal', 'viridian', 'ochre'
+        ]),
+        ...makeArcBlocks(412, 226, 118, 22, Math.PI * 1.12, Math.PI * 1.94, [
+          'ochre', 'tangerine', 'vermilion', 'crimson', 'violet'
+        ]),
+        ...makeLinearBlocks(73, 456, 75, 534, 18, -1, ['cerulean', 'cobalt']),
+        ...makeLinearBlocks(527, 456, 525, 534, 18, 1, ['vermilion', 'crimson'])
+      ]
+    };
+
+    return [plate1];
+  }
+
+  // =========================================================================
+  // 4. WebAudio 原声五声音阶打击乐与水彩爆裂音频引擎（零外部音频依赖）
+  // =========================================================================
+  class AcousticAudio {
+    constructor() {
+      this.ctx = null;
+      this.enabled = true;
+      // C 大调五声音阶高频段（治愈、干净、永不刺耳）
+      this.scale = [329.63, 392.00, 440.00, 523.25, 587.33, 659.25, 783.99, 880.00, 1046.50];
+      this.combo = 0;
+      this.lastHitTime = 0;
+    }
+
+    ensure() {
+      if (!this.enabled) return null;
+      if (!this.ctx) {
+        const AC = window.AudioContext || window.webkitAudioContext;
+        if (!AC) return null;
+        this.ctx = new AC();
+      }
+      if (this.ctx.state === 'suspended') {
+        this.ctx.resume().catch(() => {});
+      }
+      return this.ctx;
+    }
+
+    playFlipper() {
+      const ctx = this.ensure();
+      if (!ctx) return;
+      const t = ctx.currentTime;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(165, t);
+      osc.frequency.exponentialRampToValueAtTime(72, t + 0.055);
+      gain.gain.setValueAtTime(0.11, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.06);
+      osc.connect(gain).connect(ctx.destination);
+      osc.start(t);
+      osc.stop(t + 0.065);
+    }
+
+    playWall(speed) {
+      const ctx = this.ensure();
+      if (!ctx) return;
+      const amp = Math.min(0.09, Math.max(0.015, speed / 5500));
+      const t = ctx.currentTime;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(240 + Math.random() * 55, t);
+      osc.frequency.exponentialRampToValueAtTime(110, t + 0.045);
+      gain.gain.setValueAtTime(amp, t);
+      gain.gain.exponentialRampToValueAtTime(0.0008, t + 0.05);
+      osc.connect(gain).connect(ctx.destination);
+      osc.start(t);
+      osc.stop(t + 0.055);
+    }
+
+    playBumper() {
+      const ctx = this.ensure();
+      if (!ctx) return;
+      const t = ctx.currentTime;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(340, t);
+      osc.frequency.exponentialRampToValueAtTime(195, t + 0.11);
+      gain.gain.setValueAtTime(0.13, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.12);
+      osc.connect(gain).connect(ctx.destination);
+      osc.start(t);
+      osc.stop(t + 0.13);
+    }
+
+    playInkBurst() {
+      const ctx = this.ensure();
+      if (!ctx) return;
+      const now = ctx.currentTime;
+      if (now - this.lastHitTime < 1.3) {
+        this.combo = Math.min(this.scale.length - 1, this.combo + 1);
+      } else {
+        this.combo = 0;
+      }
+      this.lastHitTime = now;
+      const freq = this.scale[this.combo];
+
+      // 马林巴基频 + 泛音，模拟温润木琴清音
+      [1, 2.0, 3.98].forEach((mult, idx) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = idx === 0 ? 'sine' : 'triangle';
+        osc.frequency.setValueAtTime(freq * mult, now);
+        const peak = idx === 0 ? 0.16 : idx === 1 ? 0.045 : 0.014;
+        const dur = idx === 0 ? 0.58 : idx === 1 ? 0.22 : 0.09;
+        gain.gain.setValueAtTime(0.001, now);
+        gain.gain.linearRampToValueAtTime(peak, now + 0.008);
+        gain.gain.exponentialRampToValueAtTime(0.0008, now + dur);
+        osc.connect(gain).connect(ctx.destination);
+        osc.start(now);
+        osc.stop(now + dur + 0.02);
+      });
+    }
+
+    playPortal() {
+      const ctx = this.ensure();
+      if (!ctx) return;
+      const t = ctx.currentTime;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(420, t);
+      osc.frequency.exponentialRampToValueAtTime(840, t + 0.18);
+      gain.gain.setValueAtTime(0.09, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.22);
+      osc.connect(gain).connect(ctx.destination);
+      osc.start(t);
+      osc.stop(t + 0.24);
+    }
+
+    playComplete() {
+      const ctx = this.ensure();
+      if (!ctx) return;
+      const chord = [523.25, 659.25, 783.99, 1046.50];
+      chord.forEach((f, i) => {
+        const t = ctx.currentTime + i * 0.095;
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(f, t);
+        gain.gain.setValueAtTime(0.001, t);
+        gain.gain.linearRampToValueAtTime(0.11, t + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.0008, t + 1.15);
+        osc.connect(gain).connect(ctx.destination);
+        osc.start(t);
+        osc.stop(t + 1.2);
+      });
+    }
+  }
+
+  // =========================================================================
+  // 5. WebGL2 Ping-Pong GPU 真水彩渲染引擎（Dan Fountain 架构浏览器实现）
+  // =========================================================================
+  class WebGL2InkEngine {
+    constructor(canvas) {
+      this.canvas = canvas;
+      this.canvas.width = SIM_W;
+      this.canvas.height = SIM_H;
+      this.gl = null;
+      this.isWebGL2 = false;
+      this.floatMode = 'RGBA8';
+      this.readIdx = 0;
+      this.wetActivity = 0;
+
+      // 当前展板主题参数
+      this.paperRGB = [0.955, 0.930, 0.865];
+      this.matTopRGB = [0.74, 0.70, 0.62];
+      this.matBotRGB = [0.64, 0.60, 0.53];
+
+      // 离屏遮罩生成画布（与物理几何同源，0.00px 误差）
+      this.maskCanvas = document.createElement('canvas');
+      this.maskCanvas.width = SIM_W;
+      this.maskCanvas.height = SIM_H;
+
+      this.initGL();
+    }
+
+    initGL() {
+      const gl = this.canvas.getContext('webgl2', {
+        alpha: false,
+        antialias: false,
+        preserveDrawingBuffer: true,
+        powerPreference: 'high-performance'
+      });
+
+      if (!gl) {
+        this.initFallback2D();
+        return;
+      }
+
+      this.gl = gl;
+      this.isWebGL2 = true;
+
+      // 检测浮点帧缓冲支持，实现极细腻的毛细晕染梯度
+      const extFloat = gl.getExtension('EXT_color_buffer_float');
+      const extFloatLin = gl.getExtension('OES_texture_float_linear');
+      const extHalfLin = gl.getExtension('OES_texture_half_float_linear');
+
+      const quadVS = `#version 300 es
+        precision highp float;
+        const vec2 POS[4] = vec2[4](
+          vec2(-1.0, -1.0), vec2(1.0, -1.0),
+          vec2(-1.0,  1.0), vec2(1.0,  1.0)
+        );
+        out vec2 vUv;
+        void main() {
+          vec2 p = POS[gl_VertexID];
+          vUv = p * 0.5 + 0.5;
+          gl_Position = vec4(p, 0.0, 1.0);
+        }
+      `;
+
+      // Pass 0: 程序化冷压水彩纸高度图 + 纤维纹理（一次性生成）
+      const paperFS = `#version 300 es
+        precision highp float;
+        in vec2 vUv;
+        out vec4 fragColor;
+
+        float hash(vec2 p) {
+          p = fract(p * vec2(123.34, 456.21));
+          p += dot(p, p + 45.32);
+          return fract(p.x * p.y);
+        }
+        float noise(vec2 p) {
+          vec2 i = floor(p);
+          vec2 f = fract(p);
+          f = f * f * (3.0 - 2.0 * f);
+          float a = hash(i);
+          float b = hash(i + vec2(1.0, 0.0));
+          float c = hash(i + vec2(0.0, 1.0));
+          float d = hash(i + vec2(1.0, 1.0));
+          return mix(mix(a, b, f.x), mix(c, d, f.x), f.y);
+        }
+        float fbm(vec2 p) {
+          float v = 0.0;
+          float amp = 0.5;
+          mat2 rot = mat2(0.8, 0.6, -0.6, 0.8);
+          for (int i = 0; i < 5; i++) {
+            v += amp * noise(p);
+            p = rot * p * 2.04 + vec2(13.1, 7.7);
+            amp *= 0.5;
+          }
+          return v;
+        }
+        void main() {
+          vec2 p = vUv * vec2(3.0, 4.0);
+          float macroGrain = fbm(p * 14.0);
+          float cottonTooth = fbm(p * 52.0);
+          float microFiber = noise(p * vec2(190.0, 260.0)) * 0.5 + noise(p * vec2(260.0, 180.0)) * 0.5;
+          float h = clamp(macroGrain * 0.42 + cottonTooth * 0.38 + microFiber * 0.20, 0.0, 1.0);
+          float absorb = clamp(0.45 + 0.55 * fbm(p * 24.0 + 9.2), 0.0, 1.0);
+          fragColor = vec4(h, absorb, cottonTooth, 1.0);
+        }
+      `;
+
+      // Pass 1: 注入程序化 Metablob 水彩爆裂（按撞击方向、速度、随机种子实时生成）
+      const splatFS = `#version 300 es
+        precision highp float;
+        in vec2 vUv;
+        uniform sampler2D uInk;
+        uniform sampler2D uPaper;
+        uniform sampler2D uMask;
+        uniform vec2 uPos;       // UV 撞击中心
+        uniform vec2 uDir;       // 归一化飞溅主方向（UV空间）
+        uniform vec3 uAbsorb;    // 减色颜料吸收光谱 (1 - pigmentRGB)
+        uniform float uRadius;   // 基础半径
+        uniform float uStrength; // 浓度
+        uniform float uSeed;
+        uniform float uAspect;   // 3/4 = 0.75
+        out vec4 fragColor;
+
+        float hash1(float n) { return fract(sin(n) * 43758.5453123); }
+        float hash2(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+        float vnoise(vec2 p) {
+          vec2 i = floor(p);
+          vec2 f = fract(p);
+          f = f * f * (3.0 - 2.0 * f);
+          return mix(
+            mix(hash2(i), hash2(i + vec2(1.0, 0.0)), f.x),
+            mix(hash2(i + vec2(0.0, 1.0)), hash2(i + vec2(1.0, 1.0)), f.x),
+            f.y
+          );
+        }
+
+        void main() {
+          vec4 cur = texture(uInk, vUv);
+          float playMask = texture(uMask, vUv).r;
+          if (playMask < 0.02) {
+            fragColor = cur;
+            return;
+          }
+
+          vec2 paper = texture(uPaper, vUv).rg;
+          // 校正长宽比后的相对向量
+          vec2 d = vUv - uPos;
+          d.x *= uAspect;
+
+          vec2 fwd = normalize(vec2(uDir.x * uAspect, uDir.y) + vec2(1e-5, 0.0));
+          vec2 perp = vec2(-fwd.y, fwd.x);
+
+          // 1. 主有机水彩核（顺速度方向微微拉长 + 多谐波液叶扰动）
+          float along = dot(d, fwd);
+          float across = dot(d, perp);
+          float ang = atan(across, along);
+          float wave = 0.22 * sin(ang * 3.0 + uSeed * 6.28)
+                     + 0.14 * cos(ang * 5.0 - uSeed * 11.4)
+                     + 0.11 * sin(ang * 8.0 + uSeed * 19.7)
+                     + 0.24 * (vnoise(vUv * 42.0 + uSeed * 17.0) - 0.5)
+                     + 0.16 * (paper.r - 0.5);
+
+          vec2 stretched = vec2((along - uRadius * 0.32) / 1.38, across / 0.94);
+          float rMain = length(stretched);
+          float radMain = uRadius * (1.0 + wave);
+          float field = 1.0 - smoothstep(radMain * 0.45, radMain * 1.05, rMain);
+
+          // 2. 6 个沿速度扇形抛射的 Metablob 次级水瓣
+          float lobes = 0.0;
+          for (int i = 0; i < 6; i++) {
+            float fi = float(i);
+            float spread = (hash1(uSeed * 31.7 + fi * 13.3) - 0.5) * 1.45;
+            float dist = uRadius * (0.48 + 0.88 * hash1(uSeed * 19.1 + fi * 7.9));
+            float ca = cos(spread), sa = sin(spread);
+            vec2 ldir = vec2(fwd.x * ca - fwd.y * sa, fwd.x * sa + fwd.y * ca);
+            vec2 lpos = ldir * dist;
+            vec2 ld = d - lpos;
+            float lRad = uRadius * (0.28 + 0.34 * hash1(uSeed * 53.3 + fi * 5.1));
+            // 顺抛射方向轻微拉长
+            float la = dot(ld, ldir) / 1.55;
+            float lp = dot(ld, vec2(-ldir.y, ldir.x));
+            float lr = length(vec2(la, lp));
+            lobes += 0.72 * exp(- (lr * lr) / max(1e-5, lRad * lRad * 0.55));
+          }
+          float blob = clamp(max(field, smoothstep(0.42, 0.92, lobes)), 0.0, 1.0);
+
+          // 3. 14 颗波洛克式动能飞溅微滴（圆润抗锯齿，杜绝极小像素方块感）
+          float drops = 0.0;
+          for (int j = 0; j < 14; j++) {
+            float fj = float(j);
+            float spread = (hash1(uSeed * 71.9 + fj * 23.1) - 0.5) * 2.15;
+            float dist = uRadius * (0.95 + 1.90 * hash1(uSeed * 41.3 + fj * 11.7));
+            float ca = cos(spread), sa = sin(spread);
+            vec2 sdir = vec2(fwd.x * ca - fwd.y * sa, fwd.x * sa + fwd.y * ca);
+            vec2 spos = sdir * dist;
+            float dr = length(d - spos);
+            float dRad = 0.0034 + 0.0050 * pow(hash1(uSeed * 97.1 + fj * 17.3), 1.85);
+            drops = max(drops, 1.0 - smoothstep(dRad * 0.52, dRad * 1.06, dr));
+          }
+
+          float maskAmt = max(blob, drops * 0.95) * playMask;
+          if (maskAmt <= 0.001) {
+            fragColor = cur;
+            return;
+          }
+
+          // 边缘自带微弱浓度起伏，让刚炸开的水彩即刻具有通透水洗感
+          float washVar = 0.76 + 0.34 * paper.g + 0.18 * smoothstep(0.35, 0.95, rMain / max(1e-4, radMain));
+          vec3 addAbsorb = uAbsorb * (maskAmt * uStrength * washVar);
+          // 减色叠加并限制单点极限深度，保证叠色透明清澈
+          vec3 nextRgb = cur.rgb + addAbsorb * (1.0 - cur.rgb * 0.22);
+          nextRgb = min(nextRgb, vec3(3.2));
+
+          // 微滴迅速定型，主液核保持较高含水量进入 Ping-Pong 毛细扩散
+          float addWet = blob * 0.92 + drops * 0.18;
+          float nextWet = clamp(max(cur.a, addWet * playMask), 0.0, 1.0);
+          fragColor = vec4(nextRgb, nextWet);
+        }
+      `;
+
+      // Pass 2: 注入波洛克 1.4px 极细连续轨迹线段（防止高速跳跃断线）
+      const trailFS = `#version 300 es
+        precision highp float;
+        in vec2 vUv;
+        uniform sampler2D uInk;
+        uniform sampler2D uPaper;
+        uniform sampler2D uMask;
+        uniform vec2 uA;
+        uniform vec2 uB;
+        uniform vec3 uAbsorb;
+        uniform float uWidth;
+        uniform float uStrength;
+        uniform float uAspect;
+        out vec4 fragColor;
+
+        void main() {
+          vec4 cur = texture(uInk, vUv);
+          float playMask = texture(uMask, vUv).r;
+          if (playMask < 0.02) {
+            fragColor = cur;
+            return;
+          }
+          vec2 p = vec2(vUv.x * uAspect, vUv.y);
+          vec2 a = vec2(uA.x * uAspect, uA.y);
+          vec2 b = vec2(uB.x * uAspect, uB.y);
+          vec2 ba = b - a;
+          float h = clamp(dot(p - a, ba) / max(1e-6, dot(ba, ba)), 0.0, 1.0);
+          float dist = length(p - a - ba * h);
+
+          float paperH = texture(uPaper, vUv).r;
+          float w = uWidth * (0.85 + 0.30 * paperH);
+          float line = (1.0 - smoothstep(w * 0.35, w, dist)) * playMask;
+          if (line <= 0.001) {
+            fragColor = cur;
+            return;
+          }
+
+          vec3 nextRgb = min(vec3(3.0), cur.rgb + uAbsorb * (line * uStrength * (0.8 + 0.4 * paperH)));
+          float nextWet = clamp(max(cur.a, line * 0.22), 0.0, 1.0);
+          fragColor = vec4(nextRgb, nextWet);
+        }
+      `;
+
+      // Pass 3: 核心 Ping-Pong 毛细扩散 + 咖啡环边缘沉淀 + 自然蒸发锁死
+      const diffuseFS = `#version 300 es
+        precision highp float;
+        in vec2 vUv;
+        uniform sampler2D uInk;
+        uniform sampler2D uPaper;
+        uniform sampler2D uMask;
+        uniform vec2 uTexel;
+        out vec4 fragColor;
+
+        void main() {
+          vec4 c = texture(uInk, vUv);
+          float m0 = texture(uMask, vUv).r;
+          if (m0 < 0.02) {
+            fragColor = vec4(0.0);
+            return;
+          }
+
+          float h0 = texture(uPaper, vUv).r;
+          vec2 offs[8] = vec2[8](
+            vec2( 1.0,  0.0), vec2(-1.0,  0.0), vec2( 0.0,  1.0), vec2( 0.0, -1.0),
+            vec2( 1.0,  1.0), vec2(-1.0,  1.0), vec2( 1.0, -1.0), vec2(-1.0, -1.0)
+          );
+          float diagW[8] = float[8](1.0, 1.0, 1.0, 1.0, 0.65, 0.65, 0.65, 0.65);
+
+          float maxNbWet = c.a;
+          vec3 flowRgb = vec3(0.0);
+          float flowWet = 0.0;
+          float wSum = 0.0;
+
+          for (int i = 0; i < 8; i++) {
+            vec2 nuv = vUv + offs[i] * uTexel;
+            float nm = texture(uMask, nuv).r;
+            if (nm < 0.02) continue;
+            vec4 nc = texture(uInk, nuv);
+            maxNbWet = max(maxNbWet, nc.a);
+            if (nc.a > 0.025) {
+              float nh = texture(uPaper, nuv).r;
+              // 纸纤维毛细势差：墨水更愿意渗入纤维沟壑，产生自然羽化水彩边
+              float cap = clamp(1.0 + (nh - h0) * 2.15, 0.25, 2.1);
+              float w = diagW[i] * cap * nc.a * nm;
+              flowRgb += nc.rgb * w;
+              flowWet += nc.a * w;
+              wSum += w;
+            }
+          }
+
+          // 若当前及周围均已干透，直接原样锁定（永不糊化已干版画！）
+          if (maxNbWet <= 0.022) {
+            fragColor = vec4(c.rgb, 0.0);
+            return;
+          }
+
+          vec3 nextRgb = c.rgb;
+          float nextWet = c.a;
+
+          if (wSum > 0.001) {
+            vec3 avgRgb = flowRgb / wSum;
+            float avgWet = flowWet / wSum;
+
+            // 毛细推进：当邻域比当前更湿时向前推进水锋
+            float advance = max(0.0, avgWet - c.a);
+            float spreadRate = 0.145 * (0.65 + 0.70 * (1.0 - h0));
+
+            if (advance > 0.001) {
+              // 仅在推进前沿混入湿颜料，保留原本已经沉在纸上的深色笔触
+              nextRgb = max(c.rgb, mix(c.rgb, avgRgb, clamp(advance * 1.45, 0.0, 0.52)));
+              nextWet = max(c.a, mix(c.a, avgWet, spreadRate * 1.35));
+            } else if (c.a > 0.05) {
+              // 内部湿区微弱湿叠湿交融（让青与黄的边界柔滑过渡）
+              nextRgb = mix(c.rgb, max(c.rgb * 0.96, avgRgb), 0.045 * c.a);
+            }
+
+            // 咖啡环效应（Coffee-Ring）：在湿润边界（湿与干交界）微微富集颜料形成真实水彩干边水痕
+            float edgeSignal = clamp((c.a - avgWet) * 3.2, 0.0, 1.0);
+            float dryingBand = smoothstep(0.03, 0.24, c.a) * (1.0 - smoothstep(0.30, 0.65, c.a));
+            nextRgb *= (1.0 + edgeSignal * dryingBand * 0.048);
+          }
+
+          // 靠墙边界微弱毛细积墨
+          float wallProx = 1.0 - texture(uMask, vUv).b;
+          if (wallProx > 0.2 && c.a > 0.08 && c.a < 0.35) {
+            nextRgb *= (1.0 + wallProx * 0.005);
+          }
+
+          // 自然蒸发干涸（适度加快蒸发，保持水彩形体清透锐利而不糊成一团）
+          float evap = 0.0155 + 0.0085 * h0;
+          nextWet = max(0.0, nextWet - evap);
+
+          fragColor = vec4(min(nextRgb, vec3(3.3)), nextWet);
+        }
+      `;
+
+      // Pass 4: 美术馆级最终合成（冷压棉纸 + 减色水彩融合 + 剪纸厚卡纸外框 + 切口内阴影）
+      const compositeFS = `#version 300 es
+        precision highp float;
+        in vec2 vUv;
+        uniform sampler2D uInk;
+        uniform sampler2D uPaper;
+        uniform sampler2D uMask;
+        uniform vec3 uPaperRGB;
+        uniform vec3 uMatTopRGB;
+        uniform vec3 uMatBotRGB;
+        uniform vec2 uTexel;
+        out vec4 fragColor;
+
+        void main() {
+          vec4 maskData = texture(uMask, vUv);
+          float playMask = maskData.r;
+          float innerShadow = maskData.g;
+
+          vec4 paperData = texture(uPaper, vUv);
+          float h = paperData.r;
+          float tooth = paperData.b;
+
+          // 纸面微浮雕定向光照（45度左上柔光，模拟美术馆射灯打在冷压水彩纸上）
+          float hx = texture(uPaper, vUv + vec2(uTexel.x * 1.5, 0.0)).r - h;
+          float hy = texture(uPaper, vUv + vec2(0.0, uTexel.y * 1.5)).r - h;
+          float relief = clamp(1.0 + (-hx * 0.55 + hy * 0.55) * 0.65, 0.92, 1.06);
+
+          // 内场棉纸基底 + 极柔和中心照度
+          float vignette = 1.0 - 0.045 * length((vUv - vec2(0.5, 0.52)) * vec2(1.0, 1.15));
+          vec3 paperCol = uPaperRGB * relief * vignette * (0.975 + 0.045 * (tooth - 0.5));
+
+          // 减色水彩融合：exp(-absorption) 实现真正的青+黄→翠绿、品红+黄→朱红
+          vec4 ink = texture(uInk, vUv);
+          // 纸张凹凸微调墨水显色深浅（凹坑储墨略深，凸起略亮）
+          float grainMod = 0.88 + 0.24 * (1.0 - h);
+          vec3 absorb = ink.rgb * grainMod;
+          vec3 transmittance = exp(-absorb * 1.32);
+          // 轻微水彩亮泽提纯，防止暗部发灰
+          vec3 paintedPaper = paperCol * transmittance;
+          // 正在湿润的区域有一丝极克制的湿润水光
+          paintedPaper = mix(paintedPaper, paintedPaper * 0.965, ink.a * 0.22);
+
+          // 卡纸内切口柔和投影落到内场纸面
+          paintedPaper *= (1.0 - innerShadow * 0.22);
+
+          // 场外厚卡纸（带竖向美术馆光线渐变 + 细磨砂纸纹）
+          vec3 matCol = mix(uMatBotRGB, uMatTopRGB, smoothstep(0.0, 1.0, vUv.y));
+          float matGrain = 0.96 + 0.08 * (h - 0.5) + 0.04 * (tooth - 0.5);
+          matCol *= matGrain * relief;
+
+          // 剪纸切口 1px 微弱斜边亮/暗线（增强 2.5mm 卡纸厚度错觉）
+          float mLeft = texture(uMask, vUv + vec2(-uTexel.x * 1.4, uTexel.y * 1.4)).r;
+          float mRight = texture(uMask, vUv + vec2(uTexel.x * 1.4, -uTexel.y * 1.4)).r;
+          float bevelHighlight = clamp(playMask - mRight, 0.0, 1.0) * 0.14;
+          float bevelShade = clamp(playMask - mLeft, 0.0, 1.0) * 0.12;
+
+          vec3 finalCol = mix(matCol, paintedPaper, playMask);
+          finalCol += vec3(bevelHighlight) - vec3(bevelShade);
+
+          fragColor = vec4(clamp(finalCol, 0.0, 1.0), 1.0);
+        }
+      `;
+
+      this.progs = {
+        paper: this.createProgram(quadVS, paperFS),
+        splat: this.createProgram(quadVS, splatFS),
+        trail: this.createProgram(quadVS, trailFS),
+        diffuse: this.createProgram(quadVS, diffuseFS),
+        composite: this.createProgram(quadVS, compositeFS)
+      };
+
+      if (!this.progs.paper || !this.progs.splat || !this.progs.trail || !this.progs.diffuse || !this.progs.composite) {
+        this.isWebGL2 = false;
+        this.initFallback2D();
+        return;
+      }
+
+      this.vao = gl.createVertexArray();
+
+      // 创建纸纹纹理（静态）
+      this.paperTex = this.createTexture(SIM_W, SIM_H, gl.RGBA8, gl.RGBA, gl.UNSIGNED_BYTE, gl.LINEAR);
+      this.paperFbo = this.createFbo(this.paperTex);
+      this.renderPaperTexture();
+
+      // 创建遮罩纹理
+      this.maskTex = this.createTexture(SIM_W, SIM_H, gl.RGBA8, gl.RGBA, gl.UNSIGNED_BYTE, gl.LINEAR);
+
+      // 创建 Ping-Pong Ink FBOs（优先 RGBA16F，自动验证完备性并可降级 RGBA8）
+      let useHalfFloat = Boolean(extFloat);
+      if (useHalfFloat) {
+        const filter = (extHalfLin || extFloatLin) ? gl.LINEAR : gl.NEAREST;
+        this.inkTex = [
+          this.createTexture(SIM_W, SIM_H, gl.RGBA16F, gl.RGBA, gl.HALF_FLOAT, filter),
+          this.createTexture(SIM_W, SIM_H, gl.RGBA16F, gl.RGBA, gl.HALF_FLOAT, filter)
+        ];
+        this.inkFbo = [this.createFbo(this.inkTex[0]), this.createFbo(this.inkTex[1])];
+        gl.bindFramebuffer(gl.FRAMEBUFFER, this.inkFbo[0]);
+        if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) !== gl.FRAMEBUFFER_COMPLETE) {
+          useHalfFloat = false;
+          gl.deleteTexture(this.inkTex[0]); gl.deleteTexture(this.inkTex[1]);
+          gl.deleteFramebuffer(this.inkFbo[0]); gl.deleteFramebuffer(this.inkFbo[1]);
+        } else {
+          this.floatMode = 'RGBA16F';
+        }
+      }
+
+      if (!useHalfFloat) {
+        this.inkTex = [
+          this.createTexture(SIM_W, SIM_H, gl.RGBA8, gl.RGBA, gl.UNSIGNED_BYTE, gl.LINEAR),
+          this.createTexture(SIM_W, SIM_H, gl.RGBA8, gl.RGBA, gl.UNSIGNED_BYTE, gl.LINEAR)
+        ];
+        this.inkFbo = [this.createFbo(this.inkTex[0]), this.createFbo(this.inkTex[1])];
+        this.floatMode = 'RGBA8';
+      }
+
+      gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+      this.clearInk();
+    }
+
+    initFallback2D() {
+      // 仅在极端无 WebGL2 环境下启用 Canvas2D 降级
+      this.isWebGL2 = false;
+      this.floatMode = 'Canvas2D';
+      this.ctx2d = this.canvas.getContext('2d');
+      this.fallbackBlobs = [];
+    }
+
+    compileShader(type, src) {
+      const gl = this.gl;
+      const sh = gl.createShader(type);
+      gl.shaderSource(sh, src);
+      gl.compileShader(sh);
+      if (!gl.getShaderParameter(sh, gl.COMPILE_STATUS)) {
+        console.error('Shader compile error:', gl.getShaderInfoLog(sh));
+        gl.deleteShader(sh);
+        return null;
+      }
+      return sh;
+    }
+
+    createProgram(vsSrc, fsSrc) {
+      const gl = this.gl;
+      const vs = this.compileShader(gl.VERTEX_SHADER, vsSrc);
+      const fs = this.compileShader(gl.FRAGMENT_SHADER, fsSrc);
+      if (!vs || !fs) return null;
+      const prog = gl.createProgram();
+      gl.attachShader(prog, vs);
+      gl.attachShader(prog, fs);
+      gl.linkProgram(prog);
+      if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) {
+        console.error('Program link error:', gl.getProgramInfoLog(prog));
+        return null;
+      }
+      return prog;
+    }
+
+    createTexture(w, h, internalFormat, format, type, filter) {
+      const gl = this.gl;
+      const tex = gl.createTexture();
+      gl.bindTexture(gl.TEXTURE_2D, tex);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, filter);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, filter);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+      gl.texImage2D(gl.TEXTURE_2D, 0, internalFormat, w, h, 0, format, type, null);
+      return tex;
+    }
+
+    createFbo(tex) {
+      const gl = this.gl;
+      const fbo = gl.createFramebuffer();
+      gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
+      gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, tex, 0);
+      return fbo;
+    }
+
+    drawQuad() {
+      const gl = this.gl;
+      gl.bindVertexArray(this.vao);
+      gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+    }
+
+    renderPaperTexture() {
+      const gl = this.gl;
+      gl.bindFramebuffer(gl.FRAMEBUFFER, this.paperFbo);
+      gl.viewport(0, 0, SIM_W, SIM_H);
+      gl.useProgram(this.progs.paper);
+      this.drawQuad();
+      gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    }
+
+    // 根据当前展板精确构建剪纸遮罩与内阴影纹理（R:内场, G:卡纸内投影, B:离壁距离）
+    uploadPlateMask(plate) {
+      this.paperRGB = plate.paperRGB;
+      this.matTopRGB = plate.matTopRGB;
+      this.matBotRGB = plate.matBotRGB;
+      this.currentPlate = plate;
+
+      const scaleX = SIM_W / WORLD_W;
+      const scaleY = SIM_H / WORLD_H;
+
+      const tracePoly = (ctx, pts) => {
+        ctx.moveTo(pts[0][0] * scaleX, pts[0][1] * scaleY);
+        for (let i = 1; i < pts.length; i++) {
+          ctx.lineTo(pts[i][0] * scaleX, pts[i][1] * scaleY);
+        }
+        ctx.closePath();
+      };
+
+      // 离屏绘制 3 个独立通道再合成一张 RGBA 遮罩图
+      const cMask = document.createElement('canvas');
+      cMask.width = SIM_W; cMask.height = SIM_H;
+      const mctx = cMask.getContext('2d');
+      mctx.fillStyle = '#000';
+      mctx.fillRect(0, 0, SIM_W, SIM_H);
+      mctx.fillStyle = '#fff';
+      mctx.beginPath();
+      tracePoly(mctx, plate.outer);
+      for (const isl of plate.islands) tracePoly(mctx, isl);
+      mctx.fill('evenodd');
+
+      // 通道 G：卡纸投向内场纸面的柔和偏移阴影
+      const cShad = document.createElement('canvas');
+      cShad.width = SIM_W; cShad.height = SIM_H;
+      const sctx = cShad.getContext('2d');
+      sctx.fillStyle = '#000';
+      sctx.fillRect(0, 0, SIM_W, SIM_H);
+      sctx.save();
+      // 仅在内场裁切范围内绘制外框与岛屿的投影
+      sctx.beginPath();
+      tracePoly(sctx, plate.outer);
+      for (const isl of plate.islands) tracePoly(sctx, isl);
+      sctx.clip('evenodd');
+      sctx.shadowColor = '#ffffff';
+      sctx.shadowBlur = 14;
+      sctx.shadowOffsetX = 4;
+      sctx.shadowOffsetY = 7;
+      sctx.fillStyle = '#ffffff';
+      // 反向填充外框区域（使用超大外矩形 evenodd 挖出内场）
+      sctx.beginPath();
+      sctx.rect(-60, -60, SIM_W + 120, SIM_H + 120);
+      tracePoly(sctx, plate.outer);
+      for (const isl of plate.islands) tracePoly(sctx, isl);
+      sctx.fill('evenodd');
+      sctx.restore();
+
+      // 通道 B：柔化后的内场距离场近似（用于在壁面形成液面张力微聚积）
+      const cBlur = document.createElement('canvas');
+      cBlur.width = SIM_W; cBlur.height = SIM_H;
+      const bctx = cBlur.getContext('2d');
+      bctx.filter = 'blur(8px)';
+      bctx.drawImage(cMask, 0, 0);
+
+      const dM = mctx.getImageData(0, 0, SIM_W, SIM_H).data;
+      const dS = sctx.getImageData(0, 0, SIM_W, SIM_H).data;
+      const dB = bctx.getImageData(0, 0, SIM_W, SIM_H).data;
+      const outCtx = this.maskCanvas.getContext('2d');
+      const outImg = outCtx.createImageData(SIM_W, SIM_H);
+      const out = outImg.data;
+      for (let i = 0; i < out.length; i += 4) {
+        out[i]     = dM[i]; // R: playfield mask
+        out[i + 1] = dS[i]; // G: inner drop shadow
+        out[i + 2] = dB[i]; // B: wall proximity
+        out[i + 3] = 255;
+      }
+      outCtx.putImageData(outImg, 0, 0);
+
+      if (!this.isWebGL2) {
+        this.clearInk();
+        return;
+      }
+
+      const gl = this.gl;
+      gl.bindTexture(gl.TEXTURE_2D, this.maskTex);
+      gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA8, gl.RGBA, gl.UNSIGNED_BYTE, this.maskCanvas);
+      gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
+      this.clearInk();
+    }
+
+    clearInk() {
+      this.wetActivity = 0;
+      if (!this.isWebGL2) {
+        this.fallbackBlobs = [];
+        this.renderComposite();
+        return;
+      }
+      const gl = this.gl;
+      for (let i = 0; i < 2; i++) {
+        gl.bindFramebuffer(gl.FRAMEBUFFER, this.inkFbo[i]);
+        gl.viewport(0, 0, SIM_W, SIM_H);
+        gl.clearColor(0, 0, 0, 0);
+        gl.clear(gl.COLOR_BUFFER_BIT);
+      }
+      gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+      this.readIdx = 0;
+      this.renderComposite();
+    }
+
+    // 颜色转为减色吸收光谱 (1 - RGB)
+    rgbToAbsorb(rgb) {
+      return [
+        Math.max(0.02, 1.0 - rgb[0]),
+        Math.max(0.02, 1.0 - rgb[1]),
+        Math.max(0.02, 1.0 - rgb[2])
+      ];
+    }
+
+    // 注入水彩爆裂 Metablob
+    splat(worldX, worldY, dirX, dirY, rgb, radiusPx = 56, strength = 1.05) {
+      this.wetActivity = 140;
+      if (!this.isWebGL2) {
+        this.fallbackBlobs.push({ x: worldX, y: worldY, rgb, r: radiusPx, a: 0.72 });
+        return;
+      }
+      const gl = this.gl;
+      const writeIdx = 1 - this.readIdx;
+      const absorb = this.rgbToAbsorb(rgb);
+
+      gl.bindFramebuffer(gl.FRAMEBUFFER, this.inkFbo[writeIdx]);
+      gl.viewport(0, 0, SIM_W, SIM_H);
+      gl.useProgram(this.progs.splat);
+
+      gl.activeTexture(gl.TEXTURE0);
+      gl.bindTexture(gl.TEXTURE_2D, this.inkTex[this.readIdx]);
+      gl.uniform1i(gl.getUniformLocation(this.progs.splat, 'uInk'), 0);
+
+      gl.activeTexture(gl.TEXTURE1);
+      gl.bindTexture(gl.TEXTURE_2D, this.paperTex);
+      gl.uniform1i(gl.getUniformLocation(this.progs.splat, 'uPaper'), 1);
+
+      gl.activeTexture(gl.TEXTURE2);
+      gl.bindTexture(gl.TEXTURE_2D, this.maskTex);
+      gl.uniform1i(gl.getUniformLocation(this.progs.splat, 'uMask'), 2);
+
+      gl.uniform2f(gl.getUniformLocation(this.progs.splat, 'uPos'), worldX / WORLD_W, 1.0 - worldY / WORLD_H);
+      gl.uniform2f(gl.getUniformLocation(this.progs.splat, 'uDir'), dirX, -dirY);
+      gl.uniform3f(gl.getUniformLocation(this.progs.splat, 'uAbsorb'), absorb[0], absorb[1], absorb[2]);
+      gl.uniform1f(gl.getUniformLocation(this.progs.splat, 'uRadius'), radiusPx / WORLD_H);
+      gl.uniform1f(gl.getUniformLocation(this.progs.splat, 'uStrength'), strength);
+      gl.uniform1f(gl.getUniformLocation(this.progs.splat, 'uSeed'), Math.random() * 100.0);
+      gl.uniform1f(gl.getUniformLocation(this.progs.splat, 'uAspect'), WORLD_W / WORLD_H);
+
+      this.drawQuad();
+      this.readIdx = writeIdx;
+    }
+
+    // 注入波洛克 1.4px 极细连续墨线
+    strokeTrail(x0, y0, x1, y1, rgb, widthPx = 1.6, strength = 0.85) {
+      if (Math.hypot(x1 - x0, y1 - y0) < 0.25) return;
+      this.wetActivity = Math.max(this.wetActivity, 32);
+      if (!this.isWebGL2) return;
+
+      const gl = this.gl;
+      const writeIdx = 1 - this.readIdx;
+      const absorb = this.rgbToAbsorb(rgb);
+
+      gl.bindFramebuffer(gl.FRAMEBUFFER, this.inkFbo[writeIdx]);
+      gl.viewport(0, 0, SIM_W, SIM_H);
+      gl.useProgram(this.progs.trail);
+
+      gl.activeTexture(gl.TEXTURE0);
+      gl.bindTexture(gl.TEXTURE_2D, this.inkTex[this.readIdx]);
+      gl.uniform1i(gl.getUniformLocation(this.progs.trail, 'uInk'), 0);
+
+      gl.activeTexture(gl.TEXTURE1);
+      gl.bindTexture(gl.TEXTURE_2D, this.paperTex);
+      gl.uniform1i(gl.getUniformLocation(this.progs.trail, 'uPaper'), 1);
+
+      gl.activeTexture(gl.TEXTURE2);
+      gl.bindTexture(gl.TEXTURE_2D, this.maskTex);
+      gl.uniform1i(gl.getUniformLocation(this.progs.trail, 'uMask'), 2);
+
+      gl.uniform2f(gl.getUniformLocation(this.progs.trail, 'uA'), x0 / WORLD_W, 1.0 - y0 / WORLD_H);
+      gl.uniform2f(gl.getUniformLocation(this.progs.trail, 'uB'), x1 / WORLD_W, 1.0 - y1 / WORLD_H);
+      gl.uniform3f(gl.getUniformLocation(this.progs.trail, 'uAbsorb'), absorb[0], absorb[1], absorb[2]);
+      gl.uniform1f(gl.getUniformLocation(this.progs.trail, 'uWidth'), widthPx / WORLD_H);
+      gl.uniform1f(gl.getUniformLocation(this.progs.trail, 'uStrength'), strength);
+      gl.uniform1f(gl.getUniformLocation(this.progs.trail, 'uAspect'), WORLD_W / WORLD_H);
+
+      this.drawQuad();
+      this.readIdx = writeIdx;
+    }
+
+    // 执行一步 Ping-Pong 毛细扩散
+    stepDiffusion(iterations = 1) {
+      if (!this.isWebGL2 || this.wetActivity <= 0) return;
+      this.wetActivity--;
+
+      const gl = this.gl;
+      gl.useProgram(this.progs.diffuse);
+      gl.activeTexture(gl.TEXTURE1);
+      gl.bindTexture(gl.TEXTURE_2D, this.paperTex);
+      gl.uniform1i(gl.getUniformLocation(this.progs.diffuse, 'uPaper'), 1);
+
+      gl.activeTexture(gl.TEXTURE2);
+      gl.bindTexture(gl.TEXTURE_2D, this.maskTex);
+      gl.uniform1i(gl.getUniformLocation(this.progs.diffuse, 'uMask'), 2);
+
+      gl.uniform2f(gl.getUniformLocation(this.progs.diffuse, 'uTexel'), 1.0 / SIM_W, 1.0 / SIM_H);
+
+      for (let i = 0; i < iterations; i++) {
+        const writeIdx = 1 - this.readIdx;
+        gl.bindFramebuffer(gl.FRAMEBUFFER, this.inkFbo[writeIdx]);
+        gl.viewport(0, 0, SIM_W, SIM_H);
+
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, this.inkTex[this.readIdx]);
+        gl.uniform1i(gl.getUniformLocation(this.progs.diffuse, 'uInk'), 0);
+
+        this.drawQuad();
+        this.readIdx = writeIdx;
+      }
+    }
+
+    renderComposite() {
+      if (!this.isWebGL2) {
+        const ctx = this.ctx2d;
+        ctx.fillStyle = `rgb(${this.matTopRGB.map(v => Math.round(v*255)).join(',')})`;
+        ctx.fillRect(0, 0, SIM_W, SIM_H);
+        return;
+      }
+
+      const gl = this.gl;
+      gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+      gl.viewport(0, 0, SIM_W, SIM_H);
+      gl.useProgram(this.progs.composite);
+
+      gl.activeTexture(gl.TEXTURE0);
+      gl.bindTexture(gl.TEXTURE_2D, this.inkTex[this.readIdx]);
+      gl.uniform1i(gl.getUniformLocation(this.progs.composite, 'uInk'), 0);
+
+      gl.activeTexture(gl.TEXTURE1);
+      gl.bindTexture(gl.TEXTURE_2D, this.paperTex);
+      gl.uniform1i(gl.getUniformLocation(this.progs.composite, 'uPaper'), 1);
+
+      gl.activeTexture(gl.TEXTURE2);
+      gl.bindTexture(gl.TEXTURE_2D, this.maskTex);
+      gl.uniform1i(gl.getUniformLocation(this.progs.composite, 'uMask'), 2);
+
+      gl.uniform3fv(gl.getUniformLocation(this.progs.composite, 'uPaperRGB'), this.paperRGB);
+      gl.uniform3fv(gl.getUniformLocation(this.progs.composite, 'uMatTopRGB'), this.matTopRGB);
+      gl.uniform3fv(gl.getUniformLocation(this.progs.composite, 'uMatBotRGB'), this.matBotRGB);
+      gl.uniform2f(gl.getUniformLocation(this.progs.composite, 'uTexel'), 1.0 / SIM_W, 1.0 / SIM_H);
+
+      this.drawQuad();
+    }
+  }
+
+  // =========================================================================
+  // 6. 600Hz 子步连续碰撞物理与核心游戏引擎
+  // =========================================================================
+  class PigmentGame {
+    constructor() {
+      this.plates = buildPlates();
+      this.plateIndex = 0;
+
+      this.inkCanvas = document.getElementById('inkCanvas');
+      this.overlayCanvas = document.getElementById('overlayCanvas');
+      this.overlayCtx = this.overlayCanvas.getContext('2d');
+      this.boardFrame = document.getElementById('boardFrame');
+
+      this.inkEngine = new WebGL2InkEngine(this.inkCanvas);
+      this.audio = new AcousticAudio();
+
+      this.input = { left: false, right: false, charging: false };
+      this.chargeLevel = 0;
+      this.autoplay = false;
+      this.hasInteracted = false;
+
+      // 粒子瞬态飞溅效果（纯视觉星点，与水彩主墨层叠加）
+      this.sparks = [];
+      this.portalCooldown = 0;
+      this.completeTimer = 0;
+      this.completed = false;
+      this.time = 0;
+      this.stuckFrames = 0;
+
+      this.resizeOverlay();
+      this.buildPlateNav();
+      this.bindEvents();
+      this.loadPlate(0);
+
+      document.getElementById('engineTag').textContent =
+        this.inkEngine.isWebGL2 ? `WebGL2 Ping-Pong · ${this.inkEngine.floatMode}` : 'Canvas2D Fallback';
+
+      // 启动主循环
+      this.lastTs = null;
+      this.accum = 0;
+      requestAnimationFrame((ts) => this.loop(ts));
+    }
+
+    resizeOverlay() {
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      this.overlayCanvas.width = Math.round(WORLD_W * dpr);
+      this.overlayCanvas.height = Math.round(WORLD_H * dpr);
+      this.dpr = dpr;
+    }
+
+    buildPlateNav() {
+      const nav = document.getElementById('plateNav');
+      nav.innerHTML = '';
+      this.plates.forEach((p, idx) => {
+        const btn = document.createElement('button');
+        btn.className = 'plate-btn' + (idx === 0 ? ' active' : '');
+        btn.dataset.index = idx;
+        btn.innerHTML = `<span class="plate-swatch" style="background:${p.swatch}"></span><span>${p.code} ${p.title}</span>`;
+        btn.addEventListener('click', () => this.loadPlate(idx));
+        nav.appendChild(btn);
+      });
+    }
+
+    loadPlate(index) {
+      this.plateIndex = (index + this.plates.length) % this.plates.length;
+      const plate = this.plates[this.plateIndex];
+      this.plate = plate;
+
+      // 更新顶部与导航 UI
+      document.getElementById('plateMeta').innerHTML = `<span>Plate ${plate.code}</span><strong>${plate.title}</strong>`;
+      document.getElementById('progressDot').style.background = plate.accentHex;
+      document.querySelectorAll('.plate-btn').forEach((b, i) => b.classList.toggle('active', i === this.plateIndex));
+
+      // 构建物理碰撞线段集（外边界 + 内部镂空岛）
+      this.wallSegments = [];
+      const addClosedSegments = (pts) => {
+        for (let i = 0; i < pts.length; i++) {
+          const a = pts[i];
+          const b = pts[(i + 1) % pts.length];
+          // 跳过底部漏球口虚底边（y > 800）
+          if (a[1] > 805 && b[1] > 805) continue;
+          this.wallSegments.push({ ax: a[0], ay: a[1], bx: b[0], by: b[1] });
+        }
+      };
+      addClosedSegments(plate.outer);
+      for (const isl of plate.islands) addClosedSegments(isl);
+
+      // 初始化色块、挡板与弹柱运行态
+      this.blocks = plate.makeBlocks();
+      this.flippers = plate.flippers.map((f) => ({
+        ...f,
+        angle: f.restAngle,
+        prevAngle: f.restAngle,
+        angVel: 0
+      }));
+      this.bumpers = plate.bumpers.map((b) => ({ ...b, pulse: 0 }));
+      this.portals = plate.portals.map((p) => ({ ...p, pulse: 0 }));
+
+      // 奖牌与局态重置
+      this.losses = 0;      // 0:金球, 1:银球, 2:铜球, >=3:墨球
+      this.hits = 0;        // 挡板击打/发球次数
+      this.completed = false;
+      this.completeTimer = 0;
+      clearTimeout(this.modalDelayTimer);
+      this.sparks = [];
+      this.hideModal();
+
+      // 上传当前展板精准遮罩并重置 GPU 墨水双缓冲
+      this.inkEngine.uploadPlateMask(plate);
+
+      // 重置钢珠至底部发球同心环
+      this.spawnBall(true);
+      this.updateHUD();
+    }
+
+    spawnBall(fresh = false) {
+      const [lx, ly] = this.plate.launchPos;
+      this.ball = {
+        x: lx,
+        y: ly,
+        vx: 0,
+        vy: 0,
+        prevX: lx,
+        prevY: ly,
+        state: 'ready', // 'ready' | 'live'
+        inkRGB: null,
+        inkCharge: 0
+      };
+      this.chargeLevel = 0;
+      this.portalCooldown = 0;
+      this.stuckFrames = 0;
+      if (!fresh) {
+        this.losses++;
+        this.updateHUD();
+      }
+    }
+
+    launchBall(power = 0.78) {
+      if (!this.ball || this.ball.state !== 'ready') return;
+      this.markInteracted();
+      // 给一个优雅偏向随机微角度的上升初速，直接冲进上方大弧穹扫爆彩砖
+      const aimAngle = -Math.PI * 0.5 + (Math.random() - 0.5) * 0.34;
+      const speed = 780 + Math.min(1, Math.max(0.35, power)) * 310;
+      this.ball.vx = Math.cos(aimAngle) * speed;
+      this.ball.vy = Math.sin(aimAngle) * speed;
+      this.ball.state = 'live';
+      this.hits++;
+      this.audio.playFlipper();
+      this.updateHUD();
+    }
+
+    markInteracted() {
+      if (!this.hasInteracted) {
+        this.hasInteracted = true;
+        document.getElementById('hintOverlay').classList.add('hidden');
+      }
+    }
+
+    getMedalInfo() {
+      const isStar = this.completed && this.losses === 0 && this.hits <= this.plate.parHits;
+      if (isStar) return { cls: 'gold', label: '星标金球 ★', short: '星标金球' };
+      if (this.losses === 0) return { cls: 'gold', label: '金球', short: '金球' };
+      if (this.losses === 1) return { cls: 'silver', label: '银球', short: '银球' };
+      if (this.losses === 2) return { cls: 'bronze', label: '铜球', short: '铜球' };
+      return { cls: 'ink', label: '墨球', short: '墨球' };
+    }
+
+    updateHUD() {
+      const total = this.blocks.length;
+      const cleared = this.blocks.filter((b) => !b.alive).length;
+      document.getElementById('blockCounter').textContent = `${cleared} / ${total}`;
+      const medal = this.getMedalInfo();
+      document.getElementById('medalOrb').className = `medal-orb ${medal.cls}`;
+      document.getElementById('medalText').textContent = `${medal.short} · ${this.hits} 杆`;
+    }
+
+    showModal() {
+      const medal = this.getMedalInfo();
+      document.getElementById('modalKicker').textContent =
+        medal.label.includes('★') ? 'MASTERPIECE · STAR BALL' : 'CANVAS COMPLETE';
+      document.getElementById('modalTitle').textContent = `Plate ${this.plate.code} · ${this.plate.title}`;
+      document.getElementById('modalOrb').className = `medal-orb ${medal.cls}`;
+      document.getElementById('modalRank').textContent = medal.label;
+      document.getElementById('modalStats').textContent =
+        `${this.blocks.length}/${this.blocks.length} 色块晕染完成 · 共 ${this.hits} 次击打 · 已定型为独一无二的水彩原作`;
+      document.getElementById('galleryModal').classList.add('visible');
+    }
+
+    hideModal() {
+      document.getElementById('galleryModal').classList.remove('visible');
+    }
+
+    showToast(msg) {
+      const el = document.getElementById('toast');
+      el.textContent = msg;
+      el.classList.add('show');
+      clearTimeout(this.toastTimer);
+      this.toastTimer = setTimeout(() => el.classList.remove('show'), 2200);
+    }
+
+    // 导出高清 1500×2000 美术馆级画作 PNG（带纯水彩纸与剪纸装裱框 + 极细落款印记）
+    exportArtworkPNG() {
+      // 确保 WebGL 最新帧已绘制
+      this.inkEngine.renderComposite();
+
+      const outW = 1500;
+      const outH = 2000;
+      const c = document.createElement('canvas');
+      c.width = outW;
+      c.height = outH;
+      const ctx = c.getContext('2d');
+
+      // 1. 绘制水彩与剪纸装裱底画
+      ctx.drawImage(this.inkCanvas, 0, 0, outW, outH);
+
+      // 2. 在右下角低调压印一枚极细现代派版画签名印记
+      ctx.save();
+      const isDarkMat = this.plate.matBotRGB[0] < 0.25;
+      ctx.fillStyle = isDarkMat ? 'rgba(244, 238, 224, 0.52)' : 'rgba(28, 26, 22, 0.44)';
+      ctx.font = '300 24px -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif';
+      ctx.textAlign = 'right';
+      ctx.fillText(`PIGMENT.  ·  PLATE ${this.plate.code}  ${this.plate.subtitle}`, outW - 56, outH - 46);
+      ctx.restore();
+
+      const dataUrl = c.toDataURL('image/png');
+      const a = document.createElement('a');
+      a.href = dataUrl;
+      a.download = `PIGMENT-Plate${this.plate.code}-${this.plate.title}.png`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      this.showToast(`已导出高清原作：Plate ${this.plate.code} ${this.plate.title}.png`);
+      return dataUrl;
+    }
+
+    bindEvents() {
+      window.addEventListener('resize', () => this.resizeOverlay());
+
+      window.addEventListener('keydown', (e) => {
+        if (e.repeat) return;
+        const k = e.key.toLowerCase();
+        if (k === 'arrowleft' || k === 'a' || k === 'z') {
+          this.markInteracted();
+          if (this.ball.state === 'ready') this.launchBall(0.84);
+          this.input.left = true;
+          this.audio.playFlipper();
+        } else if (k === 'arrowright' || k === 'd' || k === '/') {
+          this.markInteracted();
+          if (this.ball.state === 'ready') this.launchBall(0.84);
+          this.input.right = true;
+          this.audio.playFlipper();
+        } else if (e.code === 'Space' || k === 'arrowup' || k === 'w') {
+          e.preventDefault();
+          this.markInteracted();
+          if (this.ball.state === 'ready') {
+            this.input.charging = true;
+          } else {
+            // 场中轻柔 Nudge 防止死球
+            this.ball.vy -= 110;
+            this.ball.vx += (Math.random() - 0.5) * 90;
+          }
+        } else if (k === 'r') {
+          this.loadPlate(this.plateIndex);
+        }
+      });
+
+      window.addEventListener('keyup', (e) => {
+        const k = e.key.toLowerCase();
+        if (k === 'arrowleft' || k === 'a' || k === 'z') this.input.left = false;
+        if (k === 'arrowright' || k === 'd' || k === '/') this.input.right = false;
+        if (e.code === 'Space' || k === 'arrowup' || k === 'w') {
+          if (this.input.charging && this.ball.state === 'ready') {
+            this.launchBall(0.55 + this.chargeLevel * 0.45);
+          }
+          this.input.charging = false;
+        }
+      });
+
+      // 鼠标 & 触摸点击左右半区直接击打挡板，点击发球区直接发球
+      const pointerDown = (clientX, clientY) => {
+        if (this.completed) return;
+        this.markInteracted();
+        const rect = this.boardFrame.getBoundingClientRect();
+        const rx = (clientX - rect.left) / rect.width;
+        const ry = (clientY - rect.top) / rect.height;
+
+        if (this.ball.state === 'ready') {
+          this.launchBall(0.76 + Math.random() * 0.18);
+        }
+        if (rx < 0.5) {
+          this.input.left = true;
+          this.audio.playFlipper();
+        } else {
+          this.input.right = true;
+          this.audio.playFlipper();
+        }
+      };
+
+      const pointerUp = () => {
+        this.input.left = false;
+        this.input.right = false;
+      };
+
+      this.boardFrame.addEventListener('pointerdown', (e) => {
+        if (e.target.closest('.gallery-modal')) return;
+        this.boardFrame.setPointerCapture(e.pointerId);
+        pointerDown(e.clientX, e.clientY);
+      });
+      this.boardFrame.addEventListener('pointerup', pointerUp);
+      this.boardFrame.addEventListener('pointercancel', pointerUp);
+
+      // 底部工具栏按钮
+      document.getElementById('resetBtn').addEventListener('click', () => {
+        this.loadPlate(this.plateIndex);
+        this.showToast('画纸已焕新，开始下一幅创作');
+      });
+
+
+
+      document.getElementById('autoBtn').addEventListener('click', (e) => {
+        this.autoplay = !this.autoplay;
+        e.currentTarget.classList.toggle('active', this.autoplay);
+        e.currentTarget.textContent = this.autoplay ? '自动示范：开' : '自动示范';
+        if (this.autoplay) {
+          this.markInteracted();
+          if (this.ball.state === 'ready') this.launchBall(0.88);
+          this.showToast('已开启 AI 画廊示范，随时可按键接管');
+        }
+      });
+
+      const softPolishDemo = () => {
+        this.markInteracted();
+        this.inkEngine.splat(215, 178, 0.45, 0.8, PALETTE.cerulean.rgb, 66, 1.12);
+        this.inkEngine.splat(275, 160, -0.1, 0.9, PALETTE.ochre.rgb, 64, 1.1);
+        this.inkEngine.splat(415, 225, -0.6, 0.65, PALETTE.vermilion.rgb, 54, 1.04);
+        this.inkEngine.strokeTrail(215, 178, 378, 420, PALETTE.cerulean.rgb, 1.2, 0.82);
+        this.inkEngine.stepDiffusion(14);
+        this.inkEngine.renderComposite();
+      };
+      document.getElementById('splashBtn').addEventListener('click', softPolishDemo);
+      this._softPolish = softPolishDemo;
+      document.getElementById('modalReplayBtn').addEventListener('click', () => this.loadPlate(this.plateIndex));
+    }
+
+    // -----------------------------------------------------------------------
+    // 物理步进（600Hz 连续碰撞 + 精准挡板角速度冲量 + 彩砖水彩引爆）
+    // -----------------------------------------------------------------------
+    stepPhysics(dt) {
+      this.time += dt;
+      if (this.portalCooldown > 0) this.portalCooldown -= dt;
+
+      // 自动示范 AI 控制逻辑（平滑、有节奏地接球与发球）
+      let leftActive = this.input.left;
+      let rightActive = this.input.right;
+      if (this.autoplay && !this.completed) {
+        if (this.ball.state === 'ready') {
+          if (!this._autoLaunchDelay) this._autoLaunchDelay = 0.45;
+          this._autoLaunchDelay -= dt;
+          if (this._autoLaunchDelay <= 0) {
+            this._autoLaunchDelay = 0;
+            this.launchBall(0.76 + Math.random() * 0.22);
+          }
+        } else if (this.ball.y > 626 && this.ball.y < 756 && this.ball.vy > -140) {
+          if (this.ball.x <= 304 && this.ball.x > 175) leftActive = true;
+          if (this.ball.x >= 296 && this.ball.x < 425) rightActive = true;
+        }
+      }
+
+      // 蓄力条更新
+      if (this.input.charging && this.ball.state === 'ready') {
+        this.chargeLevel = Math.min(1, this.chargeLevel + dt * 1.45);
+      } else if (this.ball.state === 'ready') {
+        this.chargeLevel = Math.max(0, this.chargeLevel - dt * 2.5);
+      }
+
+      // 弹柱和传送门微震动画衰减
+      for (const b of this.bumpers) b.pulse = Math.max(0, b.pulse - dt * 4.5);
+      for (const p of this.portals) p.pulse = Math.max(0, p.pulse - dt * 3.0);
+      for (const blk of this.blocks) {
+        if (!blk.alive && blk.hitAnim < 1) blk.hitAnim = Math.min(1, blk.hitAnim + dt * 3.2);
+      }
+
+      // 更新瞬态微滴粒子
+      for (let i = this.sparks.length - 1; i >= 0; i--) {
+        const s = this.sparks[i];
+        s.x += s.vx * dt;
+        s.y += s.vy * dt;
+        s.vx *= 0.93;
+        s.vy *= 0.93;
+        s.life -= dt * 2.4;
+        if (s.life <= 0) this.sparks.splice(i, 1);
+      }
+
+      // 过关后进入柔和慢动作凝视时刻（欣赏水彩完成最后的毛细晕染）
+      if (this.completed) {
+        this.completeTimer += dt;
+        if (this.completeTimer > 1.25 && !document.getElementById('galleryModal').classList.contains('visible')) {
+          this.showModal();
+        }
+        return;
+      }
+
+      const subDt = dt / SUBSTEPS;
+      const gravity = 890;
+
+      for (let s = 0; s < SUBSTEPS; s++) {
+        // 1. 挡板角速度推进
+        for (const f of this.flippers) {
+          f.prevAngle = f.angle;
+          const active = f.side < 0 ? leftActive : rightActive;
+          const target = active ? f.activeAngle : f.restAngle;
+          const maxSpeed = active ? 26.0 : 13.5;
+          const diff = target - f.angle;
+          const step = Math.sign(diff) * Math.min(Math.abs(diff), maxSpeed * subDt);
+          f.angle += step;
+          f.angVel = (f.angle - f.prevAngle) / subDt;
+        }
+
+        if (this.ball.state !== 'live') continue;
+
+        // 2. 钢珠积分
+        this.ball.vy += gravity * subDt;
+        // 极轻微空气阻尼，同时限速防失控
+        const spd = Math.hypot(this.ball.vx, this.ball.vy);
+        if (spd > 1320) {
+          const k = 1320 / spd;
+          this.ball.vx *= k;
+          this.ball.vy *= k;
+        }
+
+        const prevX = this.ball.x;
+        const prevY = this.ball.y;
+        this.ball.x += this.ball.vx * subDt;
+        this.ball.y += this.ball.vy * subDt;
+
+        // 3. 检测并引爆未清除色块（Ink Blocks）
+        for (const blk of this.blocks) {
+          if (!blk.alive) continue;
+          const hit = this.collideBallPolygon(blk.poly, 0.88);
+          if (hit) {
+            blk.alive = false;
+            blk.hitAnim = 0.01;
+            // 给钢珠蘸满该色块鲜艳水彩
+            this.ball.inkRGB = blk.color.rgb;
+            this.ball.inkCharge = 1.0;
+
+            // 计算爆裂方向（优先顺着反弹后速度 + 朝内场法线，让水彩极其自然地向纸面深处泼开！）
+            const vMag = Math.max(120, Math.hypot(this.ball.vx, this.ball.vy));
+            const dirX = this.ball.vx / vMag * 0.55 + blk.normal[0] * 0.65;
+            const dirY = this.ball.vy / vMag * 0.55 + blk.normal[1] * 0.65;
+            const radius = 52 + Math.min(34, vMag * 0.032);
+
+            this.inkEngine.splat(hit.cx, hit.cy, dirX, dirY, blk.color.rgb, radius, 1.18);
+            // 二次伴随小飞溅，营造丰富的水彩层叠
+            this.inkEngine.splat(
+              hit.cx + dirX * 26 + (Math.random() - 0.5) * 18,
+              hit.cy + dirY * 26 + (Math.random() - 0.5) * 18,
+              dirX, dirY, blk.color.rgb, radius * 0.55, 0.72
+            );
+
+            this.spawnSparks(hit.cx, hit.cy, dirX, dirY, blk.color.hex, 14);
+            this.audio.playInkBurst();
+            this.updateHUD();
+            this.checkPlateComplete();
+          }
+        }
+
+        // 4. 墙面与剪纸岛碰撞
+        for (const seg of this.wallSegments) {
+          const hit = this.collideBallSegment(seg.ax, seg.ay, seg.bx, seg.by, 0.76);
+          if (hit && hit.imp > 140) {
+            this.audio.playWall(hit.imp);
+            if (this.ball.inkRGB && this.ball.inkCharge > 0.25 && hit.imp > 240) {
+              // 蘸着颜料的钢珠撞墙时甩出小水滴
+              this.inkEngine.splat(hit.cx, hit.cy, hit.nx, hit.ny, this.ball.inkRGB, 16, 0.45 * this.ball.inkCharge);
+            }
+          }
+        }
+
+        // 5. 现代派弹柱（含 Bridget Riley 欧普弹柱）碰撞
+        for (const bmp of this.bumpers) {
+          const dx = this.ball.x - bmp.x;
+          const dy = this.ball.y - bmp.y;
+          const dist = Math.hypot(dx, dy);
+          const minD = BALL_R + bmp.r;
+          if (dist < minD && dist > 1e-5) {
+            const nx = dx / dist;
+            const ny = dy / dist;
+            this.ball.x = bmp.x + nx * minD;
+            this.ball.y = bmp.y + ny * minD;
+            const vn = this.ball.vx * nx + this.ball.vy * ny;
+            if (vn < 0) {
+              const boost = Math.max(460, -vn * bmp.bounce + 165);
+              this.ball.vx += (boost - vn) * nx;
+              this.ball.vy += (boost - vn) * ny;
+              bmp.pulse = 1.0;
+              this.audio.playBumper();
+              if (this.ball.inkRGB && this.ball.inkCharge > 0.15) {
+                this.inkEngine.splat(
+                  bmp.x + nx * bmp.r, bmp.y + ny * bmp.r,
+                  nx, ny, this.ball.inkRGB, 24, 0.52 * this.ball.inkCharge
+                );
+              }
+            }
+          }
+        }
+
+        // 6. 光学折光传送门碰撞（Plate 04）
+        if (this.portalCooldown <= 0 && this.portals.length >= 2) {
+          for (let pi = 0; pi < this.portals.length; pi++) {
+            const pr = this.portals[pi];
+            const dist = Math.hypot(this.ball.x - pr.x, this.ball.y - pr.y);
+            if (dist < pr.r + BALL_R * 0.45) {
+              const target = this.portals[pr.targetIndex];
+              const speedOut = Math.max(680, Math.hypot(this.ball.vx, this.ball.vy) * 1.12);
+              this.ball.x = target.x + target.exitDir[0] * (target.r + BALL_R + 4);
+              this.ball.y = target.y + target.exitDir[1] * (target.r + BALL_R + 4);
+              this.ball.vx = target.exitDir[0] * speedOut;
+              this.ball.vy = target.exitDir[1] * speedOut;
+              this.ball.inkRGB = target.pigment.rgb;
+              this.ball.inkCharge = 0.9;
+              pr.pulse = 1.0;
+              target.pulse = 1.0;
+              this.portalCooldown = 0.35;
+              this.inkEngine.splat(target.x, target.y, target.exitDir[0], target.exitDir[1], target.pigment.rgb, 34, 0.72);
+              this.audio.playPortal();
+              break;
+            }
+          }
+        }
+
+        // 7. 挡板渐变胶囊体旋转碰撞（根部 r=9.5 -> 尖端 r=6.0，与渲染 1:1 对齐 + 真实角速度传递）
+        for (const f of this.flippers) {
+          const tipX = f.pivot[0] + Math.cos(f.angle) * f.len;
+          const tipY = f.pivot[1] + Math.sin(f.angle) * f.len;
+          const hit = this.collideBallCapsule(f.pivot[0], f.pivot[1], tipX, tipY, 9.5, 6.0, f);
+          if (hit) {
+            // 补做一次微墙体投影，防止挡板把球挤进斜坡外墙
+            for (const seg of this.wallSegments) {
+              this.collideBallSegment(seg.ax, seg.ay, seg.bx, seg.by, 0.35);
+            }
+            if (Math.abs(f.angVel) > 4.0) {
+              this.hits++;
+              this.updateHUD();
+            }
+          }
+        }
+
+        // 8. 蘸色钢珠在棉纸上绘制 1.1px 针管级波洛克极细连续轨迹
+        if (this.ball.inkRGB && this.ball.inkCharge > 0.03) {
+          const stepDist = Math.hypot(this.ball.x - prevX, this.ball.y - prevY);
+          if (stepDist > 0.4 && stepDist < 48) {
+            const widthPx = 0.92 + 0.65 * this.ball.inkCharge;
+            this.inkEngine.strokeTrail(
+              prevX, prevY, this.ball.x, this.ball.y,
+              this.ball.inkRGB, widthPx, 0.78 * this.ball.inkCharge
+            );
+            this.ball.inkCharge = Math.max(0, this.ball.inkCharge - stepDist * 0.00052);
+          }
+        }
+
+        // 9. 漏球判定（零挫败降级奖牌球）
+        if (this.ball.y > WORLD_H + 34) {
+          this.spawnBall(false);
+          break;
+        }
+      }
+
+      // 位移型防卡死哨兵（检测球是否被微抖锁在窄区 > 0.85s；玩家按住挡板 Cradle 停球时不误触发）
+      if (this.ball.state === 'live') {
+        const holdingFlipper = (this.input.left || this.input.right) && this.ball.y > 635;
+        if (this.anchorX === undefined || Math.hypot(this.ball.x - this.anchorX, this.ball.y - this.anchorY) > 15 || holdingFlipper) {
+          this.anchorX = this.ball.x;
+          this.anchorY = this.ball.y;
+          this.stuckFrames = 0;
+        } else {
+          this.stuckFrames++;
+          if (this.stuckFrames > 50) {
+            // 柔顺推向场中央与斜上方，确保 100% 永不卡死
+            const toCenterX = Math.sign(WORLD_W * 0.5 - this.ball.x) || 1;
+            this.ball.vx = toCenterX * 260;
+            this.ball.vy = -340;
+            this.stuckFrames = 0;
+            this.anchorX = this.ball.x;
+            this.anchorY = this.ball.y;
+          }
+        }
+      }
+    }
+
+    collideBallSegment(ax, ay, bx, by, restitution) {
+      const abx = bx - ax;
+      const aby = by - ay;
+      const abLenSq = abx * abx + aby * aby;
+      if (abLenSq < 1e-6) return null;
+      const t = Math.max(0, Math.min(1, ((this.ball.x - ax) * abx + (this.ball.y - ay) * aby) / abLenSq));
+      const cx = ax + abx * t;
+      const cy = ay + aby * t;
+      const dx = this.ball.x - cx;
+      const dy = this.ball.y - cy;
+      const dist = Math.hypot(dx, dy);
+      if (dist >= BALL_R || dist < 1e-6) return null;
+
+      const nx = dx / dist;
+      const ny = dy / dist;
+      this.ball.x = cx + nx * BALL_R;
+      this.ball.y = cy + ny * BALL_R;
+
+      const vn = this.ball.vx * nx + this.ball.vy * ny;
+      if (vn < 0) {
+        const imp = -(1 + restitution) * vn;
+        this.ball.vx += imp * nx;
+        this.ball.vy += imp * ny;
+        return { cx, cy, nx, ny, imp };
+      }
+      return null;
+    }
+
+    collideBallPolygon(poly, restitution) {
+      let best = null;
+      for (let i = 0; i < poly.length; i++) {
+        const a = poly[i];
+        const b = poly[(i + 1) % poly.length];
+        const hit = this.collideBallSegment(a[0], a[1], b[0], b[1], restitution);
+        if (hit && (!best || hit.imp > best.imp)) best = hit;
+      }
+      return best;
+    }
+
+    collideBallCapsule(ax, ay, bx, by, rStart, rEnd, flipper) {
+      const abx = bx - ax;
+      const aby = by - ay;
+      const abLenSq = abx * abx + aby * aby;
+      const t = Math.max(0, Math.min(1, ((this.ball.x - ax) * abx + (this.ball.y - ay) * aby) / abLenSq));
+      const cx = ax + abx * t;
+      const cy = ay + aby * t;
+      const dx = this.ball.x - cx;
+      const dy = this.ball.y - cy;
+      const dist = Math.hypot(dx, dy);
+      const capR = rStart + (rEnd - rStart) * t;
+      const minD = BALL_R + capR;
+      if (dist >= minD || dist < 1e-6) return false;
+
+      const nx = dx / dist;
+      const ny = dy / dist;
+      this.ball.x = cx + nx * minD;
+      this.ball.y = cy + ny * minD;
+
+      // 挡板接触点的线速度 v_surface = ω × r
+      const rx = cx - ax;
+      const ry = cy - ay;
+      const svx = -flipper.angVel * ry;
+      const svy = flipper.angVel * rx;
+
+      const rvx = this.ball.vx - svx;
+      const rvy = this.ball.vy - svy;
+      const rvn = rvx * nx + rvy * ny;
+
+      if (rvn < 0) {
+        const isSwingingUp = (flipper.side < 0 && flipper.angVel < -3) || (flipper.side > 0 && flipper.angVel > 3);
+        const e = isSwingingUp ? 0.86 : 0.42;
+        this.ball.vx -= (1 + e) * rvn * nx;
+        this.ball.vy -= (1 + e) * rvn * ny;
+        // 主动向上挥拍时附加清脆爆发冲量，一杆直贯大穹顶，并按击球前中后段赋予方向控制感
+        if (isSwingingUp) {
+          const leverage = 0.65 + 0.65 * t;
+          this.ball.vx += nx * 280 * leverage;
+          this.ball.vy += ny * 340 * leverage - 220;
+          // 保障主动迎击时拥有干脆利落的最小向上初速
+          if (this.ball.vy > -620) {
+            this.ball.vy = Math.min(this.ball.vy, -(620 + 260 * t));
+          }
+        }
+        return true;
+      }
+      return false;
+    }
+
+    spawnSparks(x, y, dirX, dirY, hex, count) {
+      for (let i = 0; i < count; i++) {
+        const spread = (Math.random() - 0.5) * 1.9;
+        const baseA = Math.atan2(dirY, dirX) + spread;
+        const spd = 120 + Math.random() * 340;
+        this.sparks.push({
+          x, y,
+          vx: Math.cos(baseA) * spd,
+          vy: Math.sin(baseA) * spd,
+          r: 1.5 + Math.random() * 3.4,
+          hex,
+          life: 0.75 + Math.random() * 0.45
+        });
+      }
+    }
+
+    checkPlateComplete() {
+      if (this.completed) return;
+      if (this.blocks.every((b) => !b.alive)) {
+        this.completed = true;
+        this.completeTimer = 0;
+        this.audio.playComplete();
+        this.updateHUD();
+        clearTimeout(this.modalDelayTimer);
+        this.modalDelayTimer = setTimeout(() => {
+          if (this.completed) this.showModal();
+        }, 1150);
+      }
+    }
+
+    // -----------------------------------------------------------------------
+    // 2× Retina 矢量机件叠加层渲染（与 WebGL2 水彩纸面 0.00px 对齐）
+    // -----------------------------------------------------------------------
+    renderOverlay() {
+      const ctx = this.overlayCtx;
+      ctx.save();
+      ctx.scale(this.dpr, this.dpr);
+      ctx.clearRect(0, 0, WORLD_W, WORLD_H);
+
+      // 过关后机件轻柔淡出至 0.62，把舞台主角完全交还给水彩原作
+      const fade = this.completed ? Math.max(0.55, 1.0 - this.completeTimer * 0.45) : 1.0;
+      ctx.globalAlpha = fade;
+
+      // 1. 底部极简同心圆发球靶环（致敬《INKS.》经典视觉符号）
+      const [lx, ly] = this.plate.launchPos;
+      ctx.save();
+      ctx.strokeStyle = 'rgba(40, 36, 30, 0.14)';
+      ctx.lineWidth = 1;
+      [16, 30, 44].forEach((r) => {
+        ctx.beginPath();
+        ctx.arc(lx, ly, r, 0, Math.PI * 2);
+        ctx.stroke();
+      });
+      if (this.ball.state === 'ready') {
+        const pulseR = 16 + Math.sin(this.time * 4.2) * 3.5 + this.chargeLevel * 24;
+        ctx.strokeStyle = this.plate.accentHex;
+        ctx.globalAlpha = fade * (0.45 + this.chargeLevel * 0.45);
+        ctx.lineWidth = 1.6;
+        ctx.beginPath();
+        ctx.arc(lx, ly, pulseR, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+      ctx.restore();
+
+      // 2. 光学折光传送门（Plate 04）
+      for (const pr of this.portals) {
+        ctx.save();
+        const scale = 1 + pr.pulse * 0.22;
+        ctx.translate(pr.x, pr.y);
+        ctx.scale(scale, scale);
+
+        ctx.beginPath();
+        ctx.arc(0, 0, pr.r, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(255,255,255,0.45)';
+        ctx.fill();
+        ctx.lineWidth = 3.5;
+        ctx.strokeStyle = pr.color;
+        ctx.stroke();
+
+        // 内部旋转细环
+        ctx.rotate(this.time * 1.4);
+        ctx.setLineDash([7, 5]);
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.arc(0, 0, pr.r * 0.62, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      // 3. 嵌墙彩色颜料砖（未击碎的保持印刷级高饱和纸砖质感，击碎后柔和隐去）
+      for (const blk of this.blocks) {
+        if (!blk.alive) {
+          // 刚击碎的极淡纸槽余韵，提示曾经的色块位置
+          ctx.save();
+          ctx.beginPath();
+          blk.poly.forEach((p, idx) => idx === 0 ? ctx.moveTo(p[0], p[1]) : ctx.lineTo(p[0], p[1]));
+          ctx.closePath();
+          ctx.strokeStyle = 'rgba(30,28,24,0.06)';
+          ctx.lineWidth = 1;
+          ctx.stroke();
+          ctx.restore();
+          continue;
+        }
+        ctx.save();
+        ctx.beginPath();
+        blk.poly.forEach((p, idx) => idx === 0 ? ctx.moveTo(p[0], p[1]) : ctx.lineTo(p[0], p[1]));
+        ctx.closePath();
+        ctx.shadowColor = 'rgba(20, 18, 14, 0.16)';
+        ctx.shadowBlur = 5;
+        ctx.shadowOffsetY = 2;
+        ctx.fillStyle = blk.color.hex;
+        ctx.fill();
+
+        // 顶部柔和微高光，像涂满厚水粉的实体纸砖
+        ctx.shadowColor = 'transparent';
+        ctx.strokeStyle = 'rgba(255,255,255,0.28)';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      // 4. 现代派弹柱（含 Bridget Riley 欧普同心圆/放射锯齿纹！）
+      for (const bmp of this.bumpers) {
+        ctx.save();
+        const sc = 1 + bmp.pulse * 0.14;
+        ctx.translate(bmp.x, bmp.y);
+        ctx.scale(sc, sc);
+
+        // 柔和落地接触影
+        ctx.save();
+        ctx.shadowColor = 'rgba(20,18,14,0.22)';
+        ctx.shadowBlur = 9;
+        ctx.shadowOffsetX = 2;
+        ctx.shadowOffsetY = 4;
+        ctx.beginPath();
+        ctx.arc(0, 0, bmp.r, 0, Math.PI * 2);
+        ctx.fillStyle = bmp.style.startsWith('op-') ? '#f7f3e8' : bmp.color;
+        ctx.fill();
+        ctx.restore();
+
+        if (bmp.style === 'op-rays') {
+          // Bridget Riley 黑白放射波纹欧普圆盘
+          ctx.save();
+          ctx.beginPath();
+          ctx.arc(0, 0, bmp.r, 0, Math.PI * 2);
+          ctx.clip();
+          const slices = 24;
+          for (let i = 0; i < slices; i++) {
+            const a0 = (i / slices) * Math.PI * 2 + this.time * 0.15;
+            const a1 = ((i + 0.5) / slices) * Math.PI * 2 + this.time * 0.15;
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.arc(0, 0, bmp.r * 1.1, a0, a1);
+            ctx.closePath();
+            ctx.fillStyle = bmp.color;
+            ctx.fill();
+          }
+          // 中央反向同心圆芯，视觉张力极强
+          ctx.beginPath();
+          ctx.arc(0, 0, bmp.r * 0.38, 0, Math.PI * 2);
+          ctx.fillStyle = '#f5f0e2';
+          ctx.fill();
+          ctx.beginPath();
+          ctx.arc(0, 0, bmp.r * 0.22, 0, Math.PI * 2);
+          ctx.fillStyle = bmp.color;
+          ctx.fill();
+          ctx.restore();
+        } else if (bmp.style === 'op-spiral') {
+          // 欧普同心交替细环
+          for (let r = bmp.r; r > 3; r -= 5.2) {
+            ctx.beginPath();
+            ctx.arc(0, 0, r, 0, Math.PI * 2);
+            ctx.fillStyle = Math.round(r / 5.2) % 2 === 0 ? bmp.color : '#f6f1e4';
+            ctx.fill();
+          }
+        } else if (bmp.style === 'op-ring') {
+          ctx.beginPath();
+          ctx.arc(0, 0, bmp.r, 0, Math.PI * 2);
+          ctx.fillStyle = bmp.color;
+          ctx.fill();
+          ctx.beginPath();
+          ctx.arc(0, 0, bmp.r * 0.68, 0, Math.PI * 2);
+          ctx.fillStyle = '#f5f0e2';
+          ctx.fill();
+          ctx.beginPath();
+          ctx.arc(0, 0, bmp.r * 0.42, 0, Math.PI * 2);
+          ctx.fillStyle = bmp.color;
+          ctx.fill();
+        } else if (bmp.style === 'ring') {
+          ctx.beginPath();
+          ctx.arc(0, 0, bmp.r * 0.62, 0, Math.PI * 2);
+          ctx.fillStyle = '#f5f0e2';
+          ctx.fill();
+        } else if (bmp.style === 'bulls-eye') {
+          ctx.beginPath();
+          ctx.arc(0, 0, bmp.r * 0.56, 0, Math.PI * 2);
+          ctx.fillStyle = '#f4e7c8';
+          ctx.fill();
+          ctx.beginPath();
+          ctx.arc(0, 0, bmp.r * 0.26, 0, Math.PI * 2);
+          ctx.fillStyle = '#1b1917';
+          ctx.fill();
+        }
+        ctx.restore();
+      }
+
+      // 5. 极简现代派圆角挡板（带真实立体投影与轴心微点，尺寸与物理 FUNNEL 1:1 严丝合缝）
+      for (const f of this.flippers) {
+        ctx.save();
+        ctx.translate(f.pivot[0], f.pivot[1]);
+        ctx.rotate(f.angle);
+
+        ctx.shadowColor = 'rgba(20, 18, 14, 0.24)';
+        ctx.shadowBlur = 8;
+        ctx.shadowOffsetX = 1;
+        ctx.shadowOffsetY = 4;
+
+        ctx.beginPath();
+        ctx.moveTo(0, -FUNNEL.rStart);
+        ctx.lineTo(f.len, -FUNNEL.rEnd);
+        ctx.arc(f.len, 0, FUNNEL.rEnd, -Math.PI * 0.5, Math.PI * 0.5);
+        ctx.lineTo(0, FUNNEL.rStart);
+        ctx.arc(0, 0, FUNNEL.rStart, Math.PI * 0.5, Math.PI * 1.5);
+        ctx.closePath();
+        ctx.fillStyle = this.plate.flipperColor;
+        ctx.fill();
+
+        // 转轴精致金属小圆点
+        ctx.shadowColor = 'transparent';
+        ctx.beginPath();
+        ctx.arc(0, 0, 3.2, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(255, 252, 244, 0.55)';
+        ctx.fill();
+        ctx.restore();
+      }
+
+      // 6. 瞬态飞溅微滴星点
+      for (const s of this.sparks) {
+        ctx.save();
+        ctx.globalAlpha = fade * Math.max(0, s.life);
+        ctx.fillStyle = s.hex;
+        ctx.beginPath();
+        ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+
+      // 7. 金属光泽奖牌弹珠（金/银/铜/墨球，球面微反射当前蘸取的水彩颜色）
+      if (this.ball && !this.completed) {
+        const bx = this.ball.x;
+        const by = this.ball.y;
+        const medal = this.getMedalInfo();
+
+        ctx.save();
+        // 落地微阴影
+        ctx.beginPath();
+        ctx.arc(bx + 2.5, by + 4.5, BALL_R * 0.96, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(20, 18, 14, 0.20)';
+        ctx.fill();
+
+        // 金属球体径向渐变
+        const grad = ctx.createRadialGradient(bx - 3.6, by - 4.0, 1.5, bx, by, BALL_R);
+        if (medal.cls === 'gold') {
+          grad.addColorStop(0, '#fff9d6');
+          grad.addColorStop(0.38, '#ecc24d');
+          grad.addColorStop(0.82, '#aa7d16');
+          grad.addColorStop(1, '#6d4c08');
+        } else if (medal.cls === 'silver') {
+          grad.addColorStop(0, '#ffffff');
+          grad.addColorStop(0.42, '#d5dbe2');
+          grad.addColorStop(0.85, '#7e8792');
+          grad.addColorStop(1, '#4d545c');
+        } else if (medal.cls === 'bronze') {
+          grad.addColorStop(0, '#fae0c6');
+          grad.addColorStop(0.42, '#cb7c45');
+          grad.addColorStop(0.85, '#7c3f18');
+          grad.addColorStop(1, '#4c240c');
+        } else {
+          grad.addColorStop(0, '#78756e');
+          grad.addColorStop(0.45, '#2b2a27');
+          grad.addColorStop(1, '#0c0b0a');
+        }
+
+        ctx.beginPath();
+        ctx.arc(bx, by, BALL_R, 0, Math.PI * 2);
+        ctx.fillStyle = grad;
+        ctx.fill();
+
+        // 若钢珠刚蘸上水彩，在球体边缘叠加一圈晶莹的颜料折射光晕
+        if (this.ball.inkRGB && this.ball.inkCharge > 0.08) {
+          const [r, g, b] = this.ball.inkRGB.map((v) => Math.round(v * 255));
+          ctx.beginPath();
+          ctx.arc(bx, by, BALL_R, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(${r},${g},${b},${(0.42 * this.ball.inkCharge).toFixed(2)})`;
+          ctx.fill();
+        }
+
+        // 锐利高光点
+        ctx.beginPath();
+        ctx.arc(bx - 3.6, by - 3.8, 2.8, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.82)';
+        ctx.fill();
+        ctx.restore();
+      }
+
+      ctx.restore();
+    }
+
+    loop(ts) {
+      if (this.lastTs === null) this.lastTs = ts;
+      const elapsed = Math.max(0, Math.min(0.05, (ts - this.lastTs) / 1000));
+      this.lastTs = ts;
+      this.accum += elapsed;
+
+      while (this.accum >= FIXED_DT) {
+        this.stepPhysics(FIXED_DT);
+        this.inkEngine.stepDiffusion(1);
+        this.accum -= FIXED_DT;
+      }
+
+      this.inkEngine.renderComposite();
+      this.renderOverlay();
+      requestAnimationFrame((nextTs) => this.loop(nextTs));
+    }
+  }
+
+  // 支持 ?embed=1 嵌入模式与 ?auto=1 自动演示启动参数
+  const __PARAMS__ = new URLSearchParams(window.location.search);
+  if (__PARAMS__.get('embed') === '1') {
+    document.body.classList.add('embed-mode');
+  }
+
+  // 启动游戏并暴露轻量只读句柄供自动化测试验证
+  window.__PIGMENT__ = new PigmentGame(); document.getElementById('autoBtn').classList.remove('active'); if (window.__PIGMENT__._softPolish) window.__PIGMENT__._softPolish();
+  if (__PARAMS__.get('embed') === '1') {
+    document.querySelectorAll('.plate-btn').forEach((btn, i) => {
+      const sp = btn.querySelectorAll('span')[1];
+      if (sp) sp.textContent = ['01', '02', '03', '04'][i];
+    });
+    const expBtn = document.getElementById('exportBtn');
+    if (expBtn) expBtn.textContent = '存画 PNG';
+    const rstBtn = document.getElementById('resetBtn');
+    if (rstBtn) rstBtn.textContent = '重置';
+    const autoBtn = document.getElementById('autoBtn');
+    if (autoBtn) autoBtn.textContent = '示范';
+  }
+  if (__PARAMS__.get('auto') === '1') {
+    setTimeout(() => {
+      const autoBtn = document.getElementById('autoBtn');
+      if (autoBtn && !window.__PIGMENT__.autoplay) autoBtn.click();
+    }, 300);
+  }
+})();
+</script>
+</body>
+</html>

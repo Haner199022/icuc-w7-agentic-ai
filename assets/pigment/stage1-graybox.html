@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>第 1 版｜灰框弹珠原型（PIGMENT. 演进起点）</title>
+<style>
+  :root {
+    --ink-dark: #18181b;
+    --ink-muted: #52525b;
+  }
+  * { box-sizing: border-box; user-select: none; }
+  html, body {
+    margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
+    background: #d4d4d8; color: #18181b;
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", Arial, sans-serif;
+  }
+  .shell {
+    width: 100%; height: 100%;
+    display: grid; grid-template-rows: 52px 1fr 56px;
+    align-items: center; justify-items: center; padding: 0 20px;
+  }
+  .top-bar {
+    width: 100%; max-width: 1120px;
+    display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  }
+  .title-box { display: flex; align-items: baseline; gap: 10px; white-space: nowrap; }
+  .title-box strong { font-size: 16px; font-weight: 700; color: #18181b; }
+  .title-box span { font-size: 12px; color: #52525b; }
+  
+  .top-bar, .bottom-bar {
+    max-width: 1120px;
+  }
+  .brand, .hud-strip, .plate-label, .progress-pill, .medal-badge {
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .brand-sub, .engine-tag { display: none; }
+  .stage-nav-bar {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px;
+    border-radius: 999px;
+    background: rgba(29, 28, 25, 0.07);
+    flex-shrink: 0;
+  }
+  body.dark-gallery .stage-nav-bar {
+    background: rgba(255, 255, 255, 0.08);
+  }
+  .stage-nav-pill {
+    text-decoration: none;
+    font-size: 11.5px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    padding: 5px 11px;
+    border-radius: 999px;
+    color: var(--ink-muted, #52525b);
+    transition: background-color 150ms ease, color 150ms ease;
+    white-space: nowrap;
+  }
+  .stage-nav-pill:hover {
+    color: var(--ink-dark, #18181b);
+    background: rgba(255, 255, 255, 0.65);
+  }
+  .stage-nav-pill.current {
+    background: var(--ink-dark, #18181b);
+    color: #faf7f0;
+  }
+  body.dark-gallery .stage-nav-pill.current {
+    background: #f2eee6;
+    color: #161513;
+  }
+  body.embed-mode .stage-nav-bar { display: none; }
+
+  .stage-wrap {
+    width: 100%; height: 100%;
+    display: flex; align-items: center; justify-content: center; min-height: 0;
+  }
+  .raw-frame {
+    position: relative;
+    aspect-ratio: 3 / 4;
+    height: min(calc(100vh - 132px), 740px);
+    max-width: calc(100vw - 32px);
+    background: #e4e4e7;
+    border: 3px solid #3f3f46;
+    cursor: pointer;
+    touch-action: none;
+  }
+  .raw-frame canvas {
+    position: absolute; inset: 0; width: 100%; height: 100%; display: block;
+  }
+  .fail-modal {
+    position: absolute; inset: 0;
+    background: rgba(24, 24, 27, 0.62);
+    display: none; align-items: center; justify-content: center;
+  }
+  .fail-modal.show { display: flex; }
+  .fail-box {
+    width: 78%; background: #fef2f2; border: 3px solid #dc2626;
+    padding: 20px; text-align: center;
+  }
+  .fail-box h2 { margin: 0 0 8px; color: #b91c1c; font-size: 24px; }
+  .fail-box p { margin: 0 0 14px; color: #3f3f46; font-size: 14px; }
+  .raw-btn {
+    border: 2px solid #27272a; background: #f4f4f5; color: #18181b;
+    font-size: 13px; font-weight: 700; padding: 7px 14px; cursor: pointer;
+  }
+  .raw-btn:hover { background: #e4e4e7; }
+  .raw-btn.danger { background: #dc2626; color: #ffffff; border-color: #991b1b; }
+  .bottom-bar {
+    width: 100%; max-width: 1120px;
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    font-size: 12.5px; color: #3f3f46;
+  }
+  .ctrl-row { display: flex; align-items: center; gap: 8px; }
+  .note-tag {
+    background: #fafafa; border: 1px solid #a1a1aa; padding: 4px 10px; font-size: 12px; color: #3f3f46;
+  }
+</style>
+</head>
+<body>
+<div class="shell">
+  <header class="top-bar">
+    <div class="title-box">
+      <strong>第 1 版｜灰框弹珠初稿</strong>
+      <span>死灰塑料框 · 零水彩 · 漏球弹窗判负</span>
+    </div>
+    <nav class="stage-nav-bar" aria-label="PIGMENT 四阶段演进切换"><a class="stage-nav-pill current" href="stage1-graybox.html">第 1 版 · 灰框</a><a class="stage-nav-pill" href="stage2-watercolor-buggy.html">第 2 版 · 水彩初成</a><a class="stage-nav-pill" href="stage3-physics-fixed.html">第 3 版 · 零卡球</a><a class="stage-nav-pill" href="stage4-gallery-final.html">终版 · 美术馆</a></nav>
+  </header>
+
+  <main class="stage-wrap">
+    <div class="raw-frame" id="frame">
+      <canvas id="cv" width="600" height="800"></canvas>
+      <div class="fail-modal" id="failModal">
+        <div class="fail-box">
+          <h2>GAME OVER 失败了！</h2>
+          <p id="failScore">当前得分：0 分（漏球即弹窗打断体验）</p>
+          <button class="raw-btn danger" id="retryBtn">重新开始</button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="bottom-bar">
+    <div class="ctrl-row">
+      <button class="raw-btn" id="btnLeft">按住左挡板 (A/←)</button>
+      <button class="raw-btn" id="btnRight">按住右挡板 (D/→)</button>
+      <button class="raw-btn" id="btnReset">重置重来 (R)</button>
+    </div>
+    <div class="note-tag" id="hudTxt">得分：0 ｜ 剩余方砖：10</div>
+  </footer>
+</div>
+
+<script>
+(() => {
+  'use strict';
+  const cv = document.getElementById('cv');
+  const ctx = cv.getContext('2d');
+  const frame = document.getElementById('frame');
+  const failModal = document.getElementById('failModal');
+  const failScore = document.getElementById('failScore');
+  const hudTxt = document.getElementById('hudTxt');
+
+  const W = 600, H = 800, R = 11.2;
+  const WALL_L = 46, WALL_R = 554, WALL_T = 56;
+  let score = 0, gameOver = false;
+  let leftDown = false, rightDown = false;
+  let lAng = 0.44, rAng = Math.PI - 0.44;
+  let lPrev = lAng, rPrev = rAng;
+  let ball = { x: 300, y: 580, vx: 135, vy: -680 };
+  let bricks = [];
+
+  const bumpers = [
+    { x: 205, y: 315, r: 28 },
+    { x: 395, y: 315, r: 28 },
+    { x: 300, y: 445, r: 24 }
+  ];
+
+  const slopes = [
+    { ax: WALL_L, ay: 610, bx: 186, by: 702 },
+    { ax: WALL_R, ay: 610, bx: 414, by: 702 }
+  ];
+
+  function resetGame() {
+    score = 0;
+    gameOver = false;
+    failModal.classList.remove('show');
+    ball = { x: 300, y: 570, vx: (Math.random() > 0.5 ? 1 : -1) * (120 + Math.random() * 80), vy: -720 };
+    bricks = [];
+    const cols = ['#dc2626', '#2563eb', '#eab308', '#16a34a', '#9333ea', '#ea580c'];
+    for (let i = 0; i < 6; i++) {
+      bricks.push({ x: 64 + i * 79, y: 82, w: 72, h: 28, col: cols[i], alive: true });
+    }
+    bricks.push({ x: 56, y: 220, w: 26, h: 78, col: '#2563eb', alive: true });
+    bricks.push({ x: 56, y: 316, w: 26, h: 78, col: '#16a34a', alive: true });
+    bricks.push({ x: 518, y: 220, w: 26, h: 78, col: '#dc2626', alive: true });
+    bricks.push({ x: 518, y: 316, w: 26, h: 78, col: '#ea580c', alive: true });
+    updateHud();
+  }
+
+  function updateHud() {
+    const rem = bricks.filter(b => b.alive).length;
+    hudTxt.textContent = `得分：${score} ｜ 剩余方砖：${rem}`;
+  }
+
+  function collideSeg(ax, ay, bx, by, rest, angVel = 0, pivX = 0, pivY = 0, radius = 0) {
+    const abx = bx - ax, aby = by - ay;
+    const lenSq = abx * abx + aby * aby;
+    const t = Math.max(0, Math.min(1, ((ball.x - ax) * abx + (ball.y - ay) * aby) / lenSq));
+    const cx = ax + abx * t, cy = ay + aby * t;
+    const dx = ball.x - cx, dy = ball.y - cy;
+    const dist = Math.hypot(dx, dy);
+    const minD = R + radius;
+    if (dist >= minD || dist < 1e-5) return false;
+    const nx = dx / dist, ny = dy / dist;
+    ball.x = cx + nx * minD;
+    ball.y = cy + ny * minD;
+    const svx = -angVel * (cy - pivY);
+    const svy = angVel * (cx - pivX);
+    const rvn = (ball.vx - svx) * nx + (ball.vy - svy) * ny;
+    if (rvn < 0) {
+      ball.vx -= (1 + rest) * rvn * nx;
+      ball.vy -= (1 + rest) * rvn * ny;
+      if (Math.abs(angVel) > 4) {
+        ball.vy = Math.min(ball.vy - 180, -640);
+      }
+      return true;
+    }
+    return false;
+  }
+
+  function step(dt) {
+    if (gameOver) return;
+    const sub = 6;
+    const sdt = dt / sub;
+    for (let s = 0; s < sub; s++) {
+      lPrev = lAng; rPrev = rAng;
+      const lTgt = leftDown ? -0.45 : 0.44;
+      const rTgt = rightDown ? Math.PI + 0.45 : Math.PI - 0.44;
+      lAng += Math.sign(lTgt - lAng) * Math.min(Math.abs(lTgt - lAng), 18 * sdt);
+      rAng += Math.sign(rTgt - rAng) * Math.min(Math.abs(rTgt - rAng), 18 * sdt);
+      const lVel = (lAng - lPrev) / sdt;
+      const rVel = (rAng - rPrev) / sdt;
+
+      ball.vy += 860 * sdt;
+      ball.x += ball.vx * sdt;
+      ball.y += ball.vy * sdt;
+
+      if (ball.x < WALL_L + R) { ball.x = WALL_L + R; ball.vx = Math.abs(ball.vx) * 0.86; }
+      if (ball.x > WALL_R - R) { ball.x = WALL_R - R; ball.vx = -Math.abs(ball.vx) * 0.86; }
+      if (ball.y < WALL_T + R) { ball.y = WALL_T + R; ball.vy = Math.abs(ball.vy) * 0.86; }
+
+      for (const sl of slopes) collideSeg(sl.ax, sl.ay, sl.bx, sl.by, 0.72);
+
+      // Flippers
+      collideSeg(190, 706, 190 + Math.cos(lAng) * 86, 706 + Math.sin(lAng) * 86, 0.82, lVel, 190, 706, 7);
+      collideSeg(410, 706, 410 + Math.cos(rAng) * 86, 706 + Math.sin(rAng) * 86, 0.82, rVel, 410, 706, 7);
+
+      // Bumpers
+      for (const bp of bumpers) {
+        const dx = ball.x - bp.x, dy = ball.y - bp.y;
+        const d = Math.hypot(dx, dy);
+        if (d < bp.r + R && d > 1e-4) {
+          const nx = dx / d, ny = dy / d;
+          ball.x = bp.x + nx * (bp.r + R);
+          ball.y = bp.y + ny * (bp.r + R);
+          ball.vx = nx * 520;
+          ball.vy = ny * 520;
+        }
+      }
+
+      // Bricks (disappear dryly with zero ink)
+      for (const br of bricks) {
+        if (!br.alive) continue;
+        const nx = Math.max(br.x, Math.min(ball.x, br.x + br.w));
+        const ny = Math.max(br.y, Math.min(ball.y, br.y + br.h));
+        const dx = ball.x - nx, dy = ball.y - ny;
+        if (dx * dx + dy * dy < R * R) {
+          br.alive = false;
+          score += 10;
+          if (Math.abs(dx) > Math.abs(dy)) ball.vx = -ball.vx; else ball.vy = -ball.vy;
+          updateHud();
+        }
+      }
+
+      if (ball.y > H + 24) {
+        gameOver = true;
+        failScore.textContent = `最终得分：${score} 分（漏球即强制弹出失败框，体验很挫败！）`;
+        failModal.classList.add('show');
+        break;
+      }
+    }
+  }
+
+  function render() {
+    ctx.fillStyle = '#d4d4d8';
+    ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = '#f4f4f5';
+    ctx.fillRect(WALL_L, WALL_T, WALL_R - WALL_L, H - WALL_T - 28);
+    ctx.strokeStyle = '#3f3f46';
+    ctx.lineWidth = 4;
+    ctx.strokeRect(WALL_L, WALL_T, WALL_R - WALL_L, H - WALL_T - 28);
+
+    ctx.fillStyle = '#52525b';
+    ctx.font = 'bold 16px sans-serif';
+    ctx.fillText(`第1版灰框弹珠  得分: ${score}  (点击画布左右侧或按 A/D 挥拍)`, 54, 38);
+
+    // Bricks
+    for (const br of bricks) {
+      if (!br.alive) continue;
+      ctx.fillStyle = br.col;
+      ctx.fillRect(br.x, br.y, br.w, br.h);
+      ctx.strokeStyle = '#18181b';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(br.x, br.y, br.w, br.h);
+    }
+
+    // Bumpers
+    for (const bp of bumpers) {
+      ctx.fillStyle = '#a1a1aa';
+      ctx.beginPath();
+      ctx.arc(bp.x, bp.y, bp.r, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = '#27272a';
+      ctx.lineWidth = 3;
+      ctx.stroke();
+    }
+
+    // Slopes
+    ctx.strokeStyle = '#3f3f46';
+    ctx.lineWidth = 6;
+    ctx.beginPath();
+    slopes.forEach(s => { ctx.moveTo(s.ax, s.ay); ctx.lineTo(s.bx, s.by); });
+    ctx.stroke();
+
+    // Flippers
+    ctx.strokeStyle = '#18181b';
+    ctx.lineWidth = 14;
+    ctx.lineCap = 'butt';
+    ctx.beginPath();
+    ctx.moveTo(190, 706); ctx.lineTo(190 + Math.cos(lAng) * 86, 706 + Math.sin(lAng) * 86);
+    ctx.moveTo(410, 706); ctx.lineTo(410 + Math.cos(rAng) * 86, 706 + Math.sin(rAng) * 86);
+    ctx.stroke();
+
+    // Ball (plain black circle)
+    ctx.fillStyle = '#09090b';
+    ctx.beginPath();
+    ctx.arc(ball.x, ball.y, R, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  window.addEventListener('keydown', (e) => {
+    const k = e.key.toLowerCase();
+    if (k === 'a' || k === 'arrowleft') leftDown = true;
+    if (k === 'd' || k === 'arrowright') rightDown = true;
+    if (k === 'r' || e.code === 'Space') resetGame();
+  });
+  window.addEventListener('keyup', (e) => {
+    const k = e.key.toLowerCase();
+    if (k === 'a' || k === 'arrowleft') leftDown = false;
+    if (k === 'd' || k === 'arrowright') rightDown = false;
+  });
+
+  frame.addEventListener('pointerdown', (e) => {
+    if (e.target.closest('.fail-modal')) return;
+    const rect = frame.getBoundingClientRect();
+    if ((e.clientX - rect.left) < rect.width * 0.5) leftDown = true; else rightDown = true;
+  });
+  window.addEventListener('pointerup', () => { leftDown = false; rightDown = false; });
+
+  const bindHold = (id, fn) => {
+    const el = document.getElementById(id);
+    el.addEventListener('pointerdown', () => fn(true));
+    el.addEventListener('pointerup', () => fn(false));
+    el.addEventListener('pointerleave', () => fn(false));
+  };
+  bindHold('btnLeft', (v) => leftDown = v);
+  bindHold('btnRight', (v) => rightDown = v);
+  document.getElementById('btnReset').addEventListener('click', resetGame);
+  document.getElementById('retryBtn').addEventListener('click', resetGame);
+
+  resetGame();
+  let last = performance.now();
+  function loop(ts) {
+    const dt = Math.min(0.033, (ts - last) / 1000);
+    last = ts;
+    step(dt);
+    render();
+    requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>
